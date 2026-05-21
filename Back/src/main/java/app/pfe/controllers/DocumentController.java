@@ -1,5 +1,6 @@
 package app.pfe.controllers;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import app.pfe.dto.DocumentRequest;
+import app.pfe.entity.Docteur;
 import app.pfe.entity.Document;
 import app.pfe.service.DocteurService;
 import app.pfe.service.DocumentService;
@@ -29,17 +32,33 @@ public class DocumentController {
 
 
     @PostMapping("/add")
-    public ResponseEntity<Document> addDocument(@RequestBody Document document) {
-        
-        return  ResponseEntity.ok(documentService.AddDocument(document));
-    }
+   public ResponseEntity<Document> addDocument(@RequestBody DocumentRequest dto) {
+    Docteur docteur = docteurService.getDocteurById(dto.getDocteurId());
+
+    Document document = new Document();
+    document.setNameDocument(dto.getName());
+    document.setTypeDocument(dto.getType());
+    document.setUrlDocument(dto.getUrl());
+    document.setDocteur(docteur);
+
+    return ResponseEntity.status(HttpStatus.CREATED)
+                         .body(documentService.AddDocument(document));
+}
 
 
     @PutMapping("update/{nomDocument}")
-    public ResponseEntity<Document> updateDocument(@PathVariable String nomDocument, @RequestBody Document document) {
-    
-        return ResponseEntity.ok(documentService.updateDocument(nomDocument, document));
-    }
+   public ResponseEntity<Document> updateDocument(@PathVariable String nomDocument, @RequestBody DocumentRequest dto) {
+
+    Docteur docteur = docteurService.getDocteur(dto.getDocteurId());
+
+    Document document = new Document();
+    document.setNameDocument(dto.getName());
+    document.setTypeDocument(dto.getType());
+    document.setUrlDocument(dto.getUrl());
+    document.setDocteur(docteur);
+
+    return ResponseEntity.ok(documentService.updateDocument(nomDocument, document));
+}
 
 
     @DeleteMapping("/delete/{id}")

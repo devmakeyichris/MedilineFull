@@ -2,8 +2,12 @@ package app.pfe.entity;
 
 import java.util.List;
 
+import app.pfe.state.DocteurState;
+import app.pfe.state.SexeState;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -26,27 +30,35 @@ public class Docteur {
     private String villeDocteur; 
     private String specialiteDocteur; 
     private String descDocteur;
-    private Boolean valider;
-
-
     
-
+    
+    @Enumerated(EnumType.STRING)
+    private SexeState sexeDocteur;
+    
+    
+    
+    @Enumerated(EnumType.STRING)
+    private DocteurState valider = DocteurState.EN_ATTENTE; // valeur par défaut
+    
+    
+    
+    
     @OneToMany(mappedBy = "docteur",cascade = CascadeType.ALL)
     private List<Document> documents;
-
-
     
-
+    
+    
+    
     @OneToMany(mappedBy="docteur",cascade = CascadeType.ALL)
     private List<Rdv> rdvs;
-
-
+    
+    
     public Docteur(){
         
     }
     public Docteur(String nomDocteur, String prenomDocteur, String emailDocteur,String motDePasseDocteur, String telephoneDocteur,
-            String adresseDocteur, String villeDocteur, String specialiteDocteur, String descDocteur,
-            List<Document> documents) {
+    String adresseDocteur, String villeDocteur, String specialiteDocteur, String descDocteur, SexeState sexeDocteur,
+    List<Document> documents) {
         this.nomDocteur = nomDocteur;
         this.prenomDocteur = prenomDocteur;
         this.emailDocteur = emailDocteur;
@@ -56,6 +68,7 @@ public class Docteur {
         this.villeDocteur = villeDocteur;
         this.specialiteDocteur = specialiteDocteur;
         this.descDocteur = descDocteur;
+        this.sexeDocteur = sexeDocteur;
         this.documents = documents;
     }
     public Integer getIdDocteur() {
@@ -112,53 +125,62 @@ public class Docteur {
     public void setDescDocteur(String descDocteur) {
         this.descDocteur = descDocteur;
     }
-    public Boolean getValider() {
-        return valider;
-    }
-    public void setValider(Boolean valider) {
-        this.valider = valider;
-    } 
-
+    
     public List<Rdv> getRdvs() {
         return rdvs;
     }
-
+    
     public void setRdvs(List<Rdv> rdvs) {
         this.rdvs = rdvs;
     }
-
-
+    
+    
     @Override
-public String toString() {
-    return
-            "nom=" + nomDocteur + '\n' +
-            "prenom=" + prenomDocteur + '\n' +
-            "email=" + emailDocteur + '\n' +
-            "telephone=" + telephoneDocteur + '\n' +
-            "adresse=" + adresseDocteur + '\n' +
-            "ville=" + villeDocteur + '\n' +
-            "specialite=" + specialiteDocteur + '\n' +
-            "description=" + descDocteur + '\n' +
-            "NbDocuments=" + (documents != null ? documents.size() : 0 ) + "\n" +
-            "NbRdv = " + (rdvs != null ? rdvs.size() : 0) + '\n'
-            ;
-}
-
+    public String toString() {
+        return
+        "nom=" + nomDocteur + '\n' +
+        "prenom=" + prenomDocteur + '\n' +
+        "email=" + emailDocteur + '\n' +
+        "telephone=" + telephoneDocteur + '\n' +
+        "adresse=" + adresseDocteur + '\n' +
+        "ville=" + villeDocteur + '\n' +
+        "specialite=" + specialiteDocteur + '\n' +
+        "description=" + descDocteur + '\n' +
+        "NbDocuments=" + (documents != null ? documents.size() : 0 ) + "\n" +
+        "NbRdv = " + (rdvs != null ? rdvs.size() : 0) + '\n'
+        ;
+    }
+    
     public List<Document> getDocuments() {
         return documents;
     }
-
+    
     public void setDocuments(List<Document> documents) {
         this.documents = documents;
     }
-
+    
     public String getMotDePasseDocteur() {
         return motDePasseDocteur;
     }
-
+    
     public void setMotDePasseDocteur(String motDePasseDocteur) {
         this.motDePasseDocteur = motDePasseDocteur;
     }
-
+    public DocteurState getValider() {
+        return valider;
+    }
+    public void setValider(DocteurState valider) {
+        this.valider = valider;
+    }
+    
+    public SexeState getSexeDocteur() {
+        return sexeDocteur;
+    }
+    public void setSexeDocteur(SexeState sexeDocteur) {
+        this.sexeDocteur = sexeDocteur;
+    }
+    
+    
+    
     
 }

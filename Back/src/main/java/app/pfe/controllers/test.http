@@ -62,5 +62,21 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqZWFuLmR1cG9udEB0ZXRzMy5jb
   "motDePassePatient": "securePassword123"
 }
 
+#######################
+POST http://localhost:8086/patients/add
+Content-Type: application/json
+
+{
+  "nomPatient": "Benali",
+  "prenomPatient": "Amina",
+  "emailPatient": "amina.benali@example.com",
+  "telPatient": "0612345678",
+  "adressePatient": "12 rue des Fleurs",
+  "villePatient": "Meknès",
+  "motDePassePatient": "password123"
+}
+
+
+
 
 

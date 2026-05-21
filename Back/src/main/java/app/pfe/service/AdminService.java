@@ -12,36 +12,47 @@ import app.pfe.entity.Admin;
 import app.pfe.entity.Docteur;
 import app.pfe.repository.AdminRepository;
 import app.pfe.repository.DocteurRepository;
+import app.pfe.state.DocteurState;
 
 @Service
 public class AdminService {
-
+    
     
     private final AdminRepository adminRepository;
     private final DocteurRepository docteurRepository;
-
+    
     public AdminService(AdminRepository adminRepository, DocteurRepository docteurRepository) {
         this.adminRepository = adminRepository;
         this.docteurRepository = docteurRepository;
     }
-
+    
     public Admin saveAdmin(Admin admin) {
         return adminRepository.save(admin);
     }
-
+    
     public Optional<Admin> findByEmail(String email) {
         return adminRepository.findByEmailAdmin(email);
     }
-
+    
     public void validerDocteur(int idDocteur) {
-
+        
         Docteur docteur = docteurRepository.findById(idDocteur)
         .orElseThrow(() -> new NoSuchElementException("Docteur introuvable"));
-            
-        docteur.setValider(true);
+        
+        docteur.setValider(DocteurState.VALIDE);
         docteurRepository.save(docteur);
     }//bouton de valider
 
 
+    
+    public void refuserDocteur(int idDocteur) {
+        Docteur docteur = docteurRepository.findById(idDocteur)
+        .orElseThrow(() -> new NoSuchElementException("Docteur introuvable"));
+        docteur.setValider(DocteurState.REFUSE);
+        docteurRepository.save(docteur);
+    }  //bouton de refus
+    
+    
+    
     
 }
