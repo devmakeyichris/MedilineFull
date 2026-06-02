@@ -29,13 +29,10 @@ public class DocumentService {
     // Ajouter un document
 
     public Document AddDocument(Document document) { 
-        
         if (documentRepository.existsByNameDocument(document.getNameDocument())){
-            new IllegalArgumentException("Ce document exist deja !");
+            throw new IllegalArgumentException("Ce document existe déjà !");
         }
-
-        documentRepository.save(document);
-        return document;
+        return documentRepository.save(document);
     }
 
 
@@ -45,9 +42,9 @@ public class DocumentService {
     public Document updateDocument(String nomDocument, Document nouveauDocument) { 
         
         Document document = documentRepository.findByNameDocument(nomDocument) 
-        .orElseThrow(() -> new IllegalArgumentException("Document introuvable.")); 
+                .orElseThrow(() -> new IllegalArgumentException("Document introuvable.")); 
         
-        BeanUtils.copyProperties(document,nouveauDocument,"idDocument");
+        BeanUtils.copyProperties(nouveauDocument, document, "idDocument");
         return documentRepository.save(document); 
     }
     //Bouton nom document         

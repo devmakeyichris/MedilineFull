@@ -40,7 +40,7 @@
     formData.append("idDocteur", docteurId);
 
     try {
-      const response = await fetch("http://localhost:8086/documents/add", {
+      const response = await fetch("http://localhost:8086/documents/upload", {
         method: "POST",
         body: formData
       });
