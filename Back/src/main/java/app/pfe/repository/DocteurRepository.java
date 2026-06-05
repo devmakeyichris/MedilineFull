@@ -7,20 +7,21 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import app.pfe.entity.Docteur;
+import app.pfe.state.DocteurState;
 
 
 
 @Repository
 public interface DocteurRepository extends JpaRepository<Docteur, Integer> {
-
-
+    
+    
     Optional<Docteur> findByEmailDocteur(String email);
-
+    
     boolean existsDocteurByEmailDocteur(String email);
-
+    
     boolean deleteDocteurByEmailDocteur(String email);
-
-    List<Docteur> findByValiderTrue();
-
+    
+    List<Docteur> findByValider(DocteurState valider);
+    
     
 }
