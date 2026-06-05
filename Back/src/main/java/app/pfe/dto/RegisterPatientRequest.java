@@ -1,5 +1,7 @@
 package app.pfe.dto;
 
+import app.pfe.state.SexeState;
+
 public class RegisterPatientRequest {
     private String nom;
     private String prenom;
@@ -8,7 +10,8 @@ public class RegisterPatientRequest {
     private String adresse;
     private String ville;
     private String password;
-
+    private String dateNaissance;
+    private SexeState sexe;
     
     public String getNom() {
         return nom;
@@ -52,7 +55,22 @@ public class RegisterPatientRequest {
     public void setPassword(String password) {
         this.password = password;
     }
+    public String getDateNaissance() {
+        return dateNaissance;
+    }
+    public void setDateNaissance(String dateNaissance) {
+        this.dateNaissance = dateNaissance;
+    }
 
+    public SexeState getSexe() {
+        return sexe;
+    }
+
+    public void setSexe(SexeState sexe) {
+        this.sexe = sexe;
+    }
    
+    
+    
 }
 

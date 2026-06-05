@@ -10,33 +10,38 @@ import app.pfe.repository.DocumentRepository;
 
 @Service
 public class DocumentService {
-
+    
     private final DocumentRepository documentRepository;
-
+    
     private final DocteurRepository docteurRepository;
-
+    
     public DocumentService(DocumentRepository documentRepository,DocteurRepository docteurRepository){
         this.documentRepository = documentRepository;
         this.docteurRepository = docteurRepository;
     }
-
-
-
+    
+    
+    
     public List<Document> findDocumentByDocteurEmail(String email){
         return documentRepository.findByDocteur_EmailDocteur(email);
     }
-
+    
     // Ajouter un document
-
+    
     public Document AddDocument(Document document) { 
-        if (documentRepository.existsByNameDocument(document.getNameDocument())){
-            throw new IllegalArgumentException("Ce document existe déjà !");
+        
+        int idDocteur = document.getDocteur().getIdDocteur();
+        
+        if (documentRepository.existsByNameDocumentAndDocteur_IdDocteur(
+        document.getNameDocument(), idDocteur)) {
+            throw new IllegalArgumentException("Ce docteur a déjà un document avec ce nom !");
         }
+        
         return documentRepository.save(document);
     }
-
-
-
+    
+    
+    
     
     
     public Document updateDocument(String nomDocument, Document nouveauDocument) { 
@@ -48,45 +53,45 @@ public class DocumentService {
         return documentRepository.save(document); 
     }
     //Bouton nom document         
-
-
+    
+    
     // Supprimer un document par nom 
     public boolean deleteDocumentByName(String nomDocument) {
         if(documentRepository.existsByNameDocument(nomDocument)){
-
+            
             documentRepository.deleteByNameDocument(nomDocument); 
             return true;
-
+            
         }
         return false;
         
     }
-
+    
     public boolean deleteDocumentById(int idDocument){
         if(documentRepository.existsById(idDocument)){
             documentRepository.deleteById(idDocument);
             return true;
         }
         return false;
-
+        
     }
     //Bouton supprimer document
-
-
-
+    
+    
+    
     // Lister les documents d’un docteur par id
     public List<Document> findDocumentByIdDocteur(int id) { 
-
+        
         return documentRepository.findByDocteur_IdDocteur(id); 
     }
-
-
-
+    
+    
+    
 }
 
 
 
 
 
-    
+
 
