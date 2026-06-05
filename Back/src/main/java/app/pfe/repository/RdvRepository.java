@@ -17,5 +17,7 @@ public interface RdvRepository extends JpaRepository<Rdv, Integer> {
     List<Rdv> findByPatient_IdPatient(int idPatient); 
     
     List<Rdv> findByDocteur_IdDocteur(int idDocteur);
+
+    List<Rdv> findByDateRdvBetween(LocalDateTime dans5h, LocalDateTime dans6h);
     
 }

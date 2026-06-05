@@ -1,5 +1,7 @@
 package app.pfe.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -16,6 +18,8 @@ public class Admin {
     private Integer idAdmin;
 
     private String emailAdmin;
+
+    @JsonIgnore
     private String motDePasseAdmin;
 
     

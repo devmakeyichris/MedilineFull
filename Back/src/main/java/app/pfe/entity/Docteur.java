@@ -2,6 +2,8 @@ package app.pfe.entity;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import app.pfe.state.DocteurState;
 import app.pfe.state.SexeState;
 import jakarta.persistence.CascadeType;
@@ -24,7 +26,10 @@ public class Docteur {
     private String nomDocteur;  
     private String prenomDocteur; 
     private String emailDocteur; 
+
+    @JsonIgnore
     private String motDePasseDocteur;
+
     private String telephoneDocteur; 
     private String adresseDocteur; 
     private String villeDocteur; 
@@ -42,13 +47,13 @@ public class Docteur {
     
     
     
-    
+    @JsonIgnore
     @OneToMany(mappedBy = "docteur",cascade = CascadeType.ALL)
     private List<Document> documents;
     
     
     
-    
+    @JsonIgnore
     @OneToMany(mappedBy="docteur",cascade = CascadeType.ALL)
     private List<Rdv> rdvs;
     

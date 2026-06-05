@@ -2,7 +2,12 @@ package app.pfe.entity;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import app.pfe.state.SexeState;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -13,25 +18,32 @@ public class Patient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int idPatient;
-
+    
     private String nomPatient;
     private String prenomPatient;
     private String dNaissPatient;
+    
+    @JsonIgnore
     private String motDePassePatient;
-    private String sexePatient;
+    
+    
+    @Enumerated(EnumType.STRING)
+    private SexeState sexePatient;
+    
+    
     private String emailPatient;
     private String villePatient;
     private String adressePatient;
     private String telPatient;
-   
-
-
+    
+    
+    
     public Patient(){
         
     }
-
-
-    public Patient(String nomPatient, String prenomPatient,String motDePassePatient, String dNaissPatient, String sexePatient,String emailPatient, String villePatient, String adressePatient, String telPatient) {
+    
+    
+    public Patient(String nomPatient, String prenomPatient,String motDePassePatient, String dNaissPatient,String emailPatient, String villePatient, String adressePatient, String telPatient,SexeState sexePatient) {
         this.nomPatient = nomPatient;
         this.prenomPatient = prenomPatient;
         this.motDePassePatient = motDePassePatient;
@@ -42,23 +54,19 @@ public class Patient {
         this.adressePatient = adressePatient;
         this.telPatient = telPatient;
     }
-
     
-
+    
+    @JsonIgnore
     @OneToMany(mappedBy="patient")
     private List<Rdv> rdvs;
-
-
-
     
-
     public List<Rdv> getRdvs() {
         return rdvs;
     }
     public void setRdvs(List<Rdv> rdvs) {
         this.rdvs = rdvs;
     }
-
+    
     public int getIdPatient() {
         return idPatient;
     }
@@ -83,10 +91,8 @@ public class Patient {
     public void setdNaissPatient(String dNaissPatient) {
         this.dNaissPatient = dNaissPatient;
     }
-    public String getSexePatient() {
-        return sexePatient;
-    }
-    public void setSexePatient(String sexePatient) {
+    
+    public void setSexePatient(SexeState sexePatient) {
         this.sexePatient = sexePatient;
     }
     public String getEmailPatient() {
@@ -113,30 +119,35 @@ public class Patient {
     public void setTelPatient(String telPatient) {
         this.telPatient = telPatient;
     }
-
+    
     @Override
-public String toString() {
-    return
-            "nom=" + nomPatient + '\n' +
-            "prenom=" + prenomPatient + '\n' +
-            "dateNaissance=" + dNaissPatient + '\n' +
-            "sexe=" + sexePatient + '\n' +
-            "email=" + emailPatient + '\n' +
-            "ville=" + villePatient + '\n' +
-            "adresse=" + adressePatient + '\n' +
-            "tel=" + telPatient + '\n' +
-            "NbRdv = " + (rdvs != null ? rdvs.size() : 0) + '\n'
-            ;
-}
-
+    public String toString() {
+        return
+        "nom=" + nomPatient + '\n' +
+        "prenom=" + prenomPatient + '\n' +
+        "dateNaissance=" + dNaissPatient + '\n' +
+        "sexe=" + sexePatient + '\n' +
+        "email=" + emailPatient + '\n' +
+        "ville=" + villePatient + '\n' +
+        "adresse=" + adressePatient + '\n' +
+        "tel=" + telPatient + '\n' +
+        "NbRdv = " + (rdvs != null ? rdvs.size() : 0) + '\n'
+        ;
+    }
+    
     public String getMotDePassePatient() {
         return motDePassePatient;
     }
-
+    
     public void setMotDePassePatient(String motDePassePatient) {
         this.motDePassePatient = motDePassePatient;
     }
 
 
-
+    public SexeState getSexePatient() {
+        return sexePatient;
+    }
+    
+    
+    
 }

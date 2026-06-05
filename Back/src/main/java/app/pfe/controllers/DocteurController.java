@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import app.pfe.dto.DocteurResponse;
+import app.pfe.dto.DocumentResponse;
 import app.pfe.dto.RegisterDocteurRequest;
 import app.pfe.entity.Docteur;
 import app.pfe.entity.Document;
@@ -24,7 +27,7 @@ import app.pfe.service.RdvService;
 
 
 @RestController
-@RequestMapping("/docteur")
+@RequestMapping("/docteurs")
 public class DocteurController {
     
     private final RdvService rdvService;
@@ -40,7 +43,8 @@ public class DocteurController {
     } 
     
     @PostMapping("/add")
-    public ResponseEntity<Docteur> ajouterDocteur(@RequestBody RegisterDocteurRequest dto) {
+    public ResponseEntity<DocteurResponse> ajouterDocteur(@RequestBody RegisterDocteurRequest dto) {
+        
         Docteur docteur = new Docteur();
         docteur.setNomDocteur(dto.getNom());
         docteur.setPrenomDocteur(dto.getPrenom());
@@ -54,12 +58,27 @@ public class DocteurController {
         docteur.setDescDocteur(dto.getDescription());
         
         
-        return ResponseEntity.status(HttpStatus.CREATED)
-        .body(docteurService.addDocteur(docteur));
+        Docteur saved = docteurService.addDocteur(docteur);
+        
+        DocteurResponse response = new DocteurResponse(
+        saved.getIdDocteur(),
+        saved.getNomDocteur(),
+        saved.getPrenomDocteur(),
+        saved.getEmailDocteur(),
+        saved.getTelephoneDocteur(),
+        saved.getAdresseDocteur(),
+        saved.getVilleDocteur(),
+        saved.getSpecialiteDocteur(),
+        saved.getDescDocteur(),
+        saved.getSexeDocteur(),
+        saved.getValider()
+        );
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     
-    @PutMapping("/delete")
-    public ResponseEntity<Boolean>  deleteDocteurById(@PathVariable int id) {
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Boolean> deleteDocteurById(@PathVariable int id) {
         return ResponseEntity.ok(docteurService.deleteDocteurById(id));
     }
     
@@ -75,6 +94,7 @@ public class DocteurController {
         docteur.setVilleDocteur(dto.getVille());
         docteur.setSpecialiteDocteur(dto.getSpecialite());
         docteur.setDescDocteur(dto.getDescription());
+        docteur.setSexeDocteur(dto.getSexe());
         
         return ResponseEntity.ok(docteurService.updateDocteur(id, docteur));
     }
@@ -86,8 +106,19 @@ public class DocteurController {
     }
     
     @GetMapping("/{id}/document")
-    public ResponseEntity<List<Document>> getDocumentByDocteur(@PathVariable int id){
-        return ResponseEntity.ok(documentService.findDocumentByIdDocteur(id));
+    public ResponseEntity<List<DocumentResponse>> getDocumentByDocteur(@PathVariable int id){
+        List<DocumentResponse> responses = documentService.findDocumentByIdDocteur(id)
+        .stream()
+        .map(document -> new DocumentResponse(
+        document.getIdDocument(),
+        document.getNameDocument(),
+        document.getTypeDocument(),
+        document.getUrlDocument(),
+        document.getDocteur().getIdDocteur()
+        ))
+        .toList();
+        
+        return ResponseEntity.ok(responses);
     }
     
 }
