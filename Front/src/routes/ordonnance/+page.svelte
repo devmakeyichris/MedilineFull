@@ -32,24 +32,33 @@
   }
 
   async function genererPDF() {
-    valider();
-    if (Object.keys(erreur).length > 0) return;
+  valider();
+  if (Object.keys(erreur).length > 0) return;
 
-    const { default: html2pdf } = await import('html2pdf.js');
-    const element = document.getElementById('apercu');
-    const options = {
-      margin: 0,
-      filename: `ordonnance_${nomPatient.replace(/\s+/g, '_')}_${today.replace(/\//g, '-')}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+  const { default: html2pdf } = await import('html2pdf.js');
+  const element = document.getElementById('apercu');
 
-    html2pdf().set(options).from(element).save();
-    succes = true;
-    setTimeout(() => succes = false, 4000);
-  }
+  // Rendre visible temporairement
+  element.style.position = 'static';
+  element.style.left = '0';
 
+  const options = {
+    margin: 0,
+    filename: `ordonnance_${nomPatient.replace(/\s+/g, '_')}_${today.replace(/\//g, '-')}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  await html2pdf().set(options).from(element).save();
+
+  // Remettre invisible
+  element.style.position = 'absolute';
+  element.style.left = '-9999px';
+
+  succes = true;
+  setTimeout(() => succes = false, 4000);
+}
   function reinitialiser() {
     nomPatient = '';
     dateNaissance = '';
@@ -67,7 +76,7 @@
       nomPatient: 'Ahmed Ali',
       dateNaissance: '1990-05-15',
       date: '25/04/2026',
-      contenu: 'Paracétamol 1g — 3x/jour pendant 5 jours\nRepos recommandé'
+      contenu: 'Paracétamol 1g —3x/jour pendant 5 jours\nRepos recommandé'
     },
     {
       id: 2,
@@ -80,12 +89,17 @@
     }
   ]);
 
- async function telechargerOrdo(ordo) {
+async function telechargerOrdo(ordo) {
   const { default: html2pdf } = await import('html2pdf.js');
+
   const div = document.createElement('div');
-  div.style.position = 'absolute';
-  div.style.left = '-9999px';
+  div.style.position = 'fixed';
+  div.style.top = '0';
+  div.style.left = '0';
   div.style.width = '794px';
+  div.style.zIndex = '99999';
+  div.style.background = 'white';
+
   div.innerHTML = `
     <div style="font-family: Arial, sans-serif; background: white; width: 794px;">
       <div style="background: #e91e8c; color: white; padding: 16px 24px;">
@@ -100,14 +114,14 @@
       <hr style="border: none; border-top: 1.5px solid #e91e8c; margin: 0 24px;" />
       <div style="padding: 16px 24px;">
         <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #718096; margin-bottom: 8px;">Informations patient</div>
-        <div style="font-size: 13px; color: #4a5568; margin-bottom: 4px;">Nom : <strong>${ordo.nomPatient}</strong></div>
-        <div style="font-size: 13px; color: #4a5568;">Date de naissance : <strong>${new Date(ordo.dateNaissance).toLocaleDateString('fr-FR')}</strong></div>
+        <div style="font-size: 13px; margin-bottom: 4px;">Nom : <strong>${ordo.nomPatient}</strong></div>
+        <div style="font-size: 13px;">Date de naissance : <strong>${new Date(ordo.dateNaissance).toLocaleDateString('fr-FR')}</strong></div>
       </div>
       <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 0 24px;" />
       <div style="padding: 16px 24px; min-height: 150px;">
         <div style="font-size: 15px; font-weight: 700; color: #e91e8c; text-align: center; margin-bottom: 6px;">ORDONNANCE MÉDICALE</div>
         <div style="width: 80px; height: 2px; background: #e91e8c; margin: 0 auto 16px;"></div>
-        <div style="font-size: 14px; color: #1a2332; line-height: 1.8; white-space: pre-wrap;">${ordo.contenu}</div>
+        <div style="font-size: 14px; line-height: 1.8; white-space: pre-wrap;">${ordo.contenu}</div>
       </div>
       <div style="padding: 16px 24px; text-align: right;">
         <div style="width: 160px; height: 1px; background: #e2e8f0; margin-left: auto; margin-bottom: 4px;"></div>
@@ -119,17 +133,35 @@
       </div>
     </div>
   `;
+
   document.body.appendChild(div);
 
-  await html2pdf().set({
+  // ← Attendre que le navigateur rende le contenu
+  await new Promise(resolve => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(resolve);
+    });
+  });
+
+  await html2pdf().from(div).set({
     margin: 0,
     filename: `ordonnance_${ordo.nomPatient.replace(/\s+/g, '_')}_${ordo.date.replace(/\//g, '-')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      width: 794,
+      windowWidth: 794
+    },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  }).from(div).save();
+  }).save();
 
-  document.body.removeChild(div);
+  // ← Supprimer après un délai
+  setTimeout(() => {
+    if (document.body.contains(div)) {
+      document.body.removeChild(div);
+    }
+  }, 500);
 }
 </script>
 
@@ -233,7 +265,7 @@
             <div class="signature-nom">{nomMedecin || '—'}</div>
           </div>
           <div class="apercu-footer">
-            Document généré par MediLine · Conforme RGPD · www.mediline.ma
+            Document généré par MediLine · Conforme RGPD 
           </div>
         </div>
 
