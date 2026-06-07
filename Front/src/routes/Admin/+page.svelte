@@ -11,6 +11,8 @@
     specialite: string;
     ville: string;
     email: string;
+    telephone: string;
+    adresse: string;
     statut: string;
   };
 
@@ -23,22 +25,21 @@
     telephone: string;
   };
 
-  let medecins = $state<Medecin[]>([
-    { id: 1, nom: 'Benali', prenom: 'Sara', specialite: 'Cardiologue', ville: 'Casablanca', email: 'sara@email.com', statut: 'en_attente' },
-    { id: 2, nom: 'Khalil', prenom: 'Omar', specialite: 'Généraliste', ville: 'Rabat', email: 'omar@email.com', statut: 'en_attente' },
-    { id: 3, nom: 'Idrissi', prenom: 'Fatima', specialite: 'Pédiatre', ville: 'Meknès', email: 'fatima@email.com', statut: 'validé' },
-    { id: 4, nom: 'Saidi', prenom: 'Karim', specialite: 'Dermatologue', ville: 'Fès', email: 'karim@email.com', statut: 'rejeté' },
-  ]);
+  type Document = {
+    id: number;
+    nom: string;
+    type: string;
+    url: string;
+  };
 
-  let patients = $state<Patient[]>([
-    { id: 1, nom: 'Ali', prenom: 'Ahmed', email: 'ahmed@email.com', ville: 'Casablanca', telephone: '0612345678' },
-    { id: 2, nom: 'Zahra', prenom: 'Fatima', email: 'fatima2@email.com', ville: 'Rabat', telephone: '0698765432' },
-    { id: 3, nom: 'Bennis', prenom: 'Omar', email: 'omar2@email.com', ville: 'Meknès', telephone: '0654321987' },
-  ]);
-
+  let medecins = $state<Medecin[]>([]);
+  let patients = $state<Patient[]>([]);
   let medecinSelectionne = $state<Medecin | null>(null);
+  let documentsMedecin = $state<Document[]>([]);
+  let chargementDocs = $state(false);
   let filtreStatut = $state('tous');
   let recherche = $state('');
+  let chargement = $state(true);
 
   let medecinsFiltres = $derived(
     medecins.filter(m => {
@@ -58,22 +59,138 @@
     )
   );
 
-  function validerMedecin(m: Medecin) {
-    m.statut = 'validé';
-    medecinSelectionne = null;
-    // TODO: fetch PUT /admin/valider/${m.id}
+  // Ouvre le modal médecin et charge ses documents
+  async function ouvrirMedecin(m: Medecin) {
+    medecinSelectionne = m;
+    documentsMedecin = [];
+    chargementDocs = true;
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:8086/docteurs/${m.id}/document`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        documentsMedecin = data.map((d: any) => ({
+          id: d.idDocument,
+          nom: d.nameDocument,
+          type: d.typeDocument,
+          url: d.urlDocument
+        }));
+      }
+    } catch (e) {
+      console.error('Erreur chargement documents:', e);
+    } finally {
+      chargementDocs = false;
+    }
   }
 
-  function rejeterMedecin(m: Medecin) {
-    m.statut = 'rejeté';
-    medecinSelectionne = null;
-    // TODO: fetch PUT /admin/rejeter/${m.id}
+  async function validerMedecin(m: Medecin) {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8086/admin/docteurs/${m.id}/valider`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        m.statut = 'validé';
+        medecinSelectionne = null;
+      } else {
+        alert("Erreur lors de la validation.");
+      }
+    } catch (e) {
+      alert("Impossible de contacter le serveur.");
+    }
   }
 
-  onMount(() => {
-    localStorage.setItem('role', 'ADMIN'); // ← temporaire
+  async function rejeterMedecin(m: Medecin) {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8086/admin/docteurs/${m.id}/refuser`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        m.statut = 'rejeté';
+        medecinSelectionne = null;
+      } else {
+        alert("Erreur lors du refus.");
+      }
+    } catch (e) {
+      alert("Impossible de contacter le serveur.");
+    }
+  }
+
+  async function supprimerPatient(p: Patient) {
+    if (!confirm(`Voulez-vous vraiment supprimer ${p.prenom} ${p.nom} ?`)) return;
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8086/patients/delete/id/${p.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        patients = patients.filter(pat => pat.id !== p.id);
+      } else {
+        alert("Erreur lors de la suppression.");
+      }
+    } catch (e) {
+      alert("Impossible de contacter le serveur.");
+    }
+  }
+
+  onMount(async () => {
+    localStorage.setItem('role', 'ADMIN'); // ← temporaire pour tester
     role = localStorage.getItem('role') || '';
-    if (role !== 'ADMIN') window.location.href = '/login-page';
+    if (role !== 'ADMIN') { window.location.href = '/login'; return; }
+
+    const token = localStorage.getItem('token');
+
+    // Charger les médecins
+    try {
+      const res = await fetch('http://localhost:8086/admin/docteurs', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        medecins = data.map((d: any) => ({
+          id: d.idDocteur,
+          nom: d.nomDocteur,
+          prenom: d.prenomDocteur,
+          specialite: d.specialiteDocteur,
+          ville: d.villeDocteur,
+          email: d.emailDocteur,
+          telephone: d.telephoneDocteur,
+          adresse: d.adresseDocteur,
+          statut: d.valider === 'VALIDE' ? 'validé' :
+                  d.valider === 'REFUSE' ? 'rejeté' : 'en_attente'
+        }));
+      }
+    } catch (e) {
+      console.error('Erreur chargement médecins:', e);
+    }
+
+    // Charger les patients
+    try {
+      const res = await fetch('http://localhost:8086/patients/getAll', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        patients = data.map((p: any) => ({
+          id: p.idPatient,
+          nom: p.nomPatient,
+          prenom: p.prenomPatient,
+          email: p.emailPatient,
+          ville: p.villePatient,
+          telephone: p.telPatient
+        }));
+      }
+    } catch (e) {
+      console.error('Erreur chargement patients:', e);
+    }
+
+    chargement = false;
   });
 </script>
 
@@ -125,22 +242,20 @@
 
   <!-- ONGLETS -->
   <div class="onglets">
-    <button class="onglet" class:actif={onglet === 'medecins'} onclick={() => { onglet = 'medecins'; recherche = ''; }}>
+    <button class="onglet" class:actif={onglet === 'medecins'}
+      onclick={() => { onglet = 'medecins'; recherche = ''; }}>
       👨‍⚕️ Médecins
     </button>
-    <button class="onglet" class:actif={onglet === 'patients'} onclick={() => { onglet = 'patients'; recherche = ''; }}>
+    <button class="onglet" class:actif={onglet === 'patients'}
+      onclick={() => { onglet = 'patients'; recherche = ''; }}>
       👤 Patients
     </button>
   </div>
 
   <!-- BARRE RECHERCHE + FILTRE -->
   <div class="barre-outils">
-    <input
-      type="text"
-      class="recherche"
-      bind:value={recherche}
-      placeholder={onglet === 'medecins' ? 'Rechercher un médecin...' : 'Rechercher un patient...'}
-    />
+    <input type="text" class="recherche" bind:value={recherche}
+      placeholder={onglet === 'medecins' ? 'Rechercher un médecin...' : 'Rechercher un patient...'} />
     {#if onglet === 'medecins'}
       <select class="filtre-select" bind:value={filtreStatut}>
         <option value="tous">Tous les statuts</option>
@@ -182,7 +297,7 @@
                 </span>
               </td>
               <td>
-                <button class="btn-detail" onclick={() => medecinSelectionne = m}>
+                <button class="btn-detail" onclick={() => ouvrirMedecin(m)}>
                   Détails
                 </button>
               </td>
@@ -207,6 +322,7 @@
             <th>Email</th>
             <th>Ville</th>
             <th>Téléphone</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -216,11 +332,16 @@
               <td>{p.email}</td>
               <td>{p.ville}</td>
               <td>{p.telephone}</td>
+              <td>
+                <button class="btn-supprimer" onclick={() => supprimerPatient(p)}>
+                  🗑 Supprimer
+                </button>
+              </td>
             </tr>
           {/each}
           {#if patientsFiltres.length === 0}
             <tr>
-              <td colspan="4" class="vide-tableau">Aucun patient trouvé.</td>
+              <td colspan="5" class="vide-tableau">Aucun patient trouvé.</td>
             </tr>
           {/if}
         </tbody>
@@ -246,6 +367,8 @@
           <div class="modal-ligne"><span>Nom</span><strong>Dr. {medecinSelectionne.prenom} {medecinSelectionne.nom}</strong></div>
           <div class="modal-ligne"><span>Spécialité</span><strong>{medecinSelectionne.specialite}</strong></div>
           <div class="modal-ligne"><span>Ville</span><strong>{medecinSelectionne.ville}</strong></div>
+          <div class="modal-ligne"><span>Adresse</span><strong>{medecinSelectionne.adresse}</strong></div>
+          <div class="modal-ligne"><span>Téléphone</span><strong>{medecinSelectionne.telephone}</strong></div>
           <div class="modal-ligne"><span>Email</span><strong>{medecinSelectionne.email}</strong></div>
           <div class="modal-ligne">
             <span>Statut</span>
@@ -256,6 +379,25 @@
               {medecinSelectionne.statut === 'en_attente' ? 'En attente' :
                medecinSelectionne.statut === 'validé' ? 'Validé' : 'Rejeté'}
             </span>
+          </div>
+
+          <!-- DOCUMENTS -->
+          <div class="docs-section">
+            <div class="docs-titre">📎 Documents soumis</div>
+            {#if chargementDocs}
+              <div class="docs-vide">Chargement des documents...</div>
+            {:else if documentsMedecin.length === 0}
+              <div class="docs-vide">Aucun document soumis.</div>
+            {:else}
+              {#each documentsMedecin as doc}
+                <a class="doc-item" href={doc.url} target="_blank" rel="noopener noreferrer">
+                  <span class="doc-icone">📄</span>
+                  <span class="doc-nom">{doc.nom}</span>
+                  <span class="doc-type">{doc.type}</span>
+                  <span class="doc-voir">Ouvrir ↗</span>
+                </a>
+              {/each}
+            {/if}
           </div>
 
           {#if medecinSelectionne.statut === 'en_attente'}
@@ -282,6 +424,7 @@
   {/if}
 
 </div>
+
 {:else}
   <div style="display:flex; align-items:center; justify-content:center; height:50vh; color:#718096;">
     Chargement...
@@ -309,8 +452,7 @@
   .entete h1 { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 700; color: #0d1b2a; margin: 0; }
   .entete p  { font-size: 0.88rem; color: #718096; margin: 0; }
 
-  /* STATS */
-  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
 
   .stat-carte {
     background: white; border-radius: 14px; padding: 1.2rem 1.5rem;
@@ -321,6 +463,7 @@
   .stat-label { font-size: 0.82rem; color: #718096; margin-top: 0.2rem; }
   .stat-attente { color: #856404 !important; }
   .stat-valide  { color: #155724 !important; }
+  .stat-rejete  { color: #721c24 !important; }
 
   /* ONGLETS */
   .onglets {
@@ -339,10 +482,8 @@
   .onglet:hover { color: #e91e8c; }
   .onglet.actif { color: #e91e8c; border-bottom-color: #e91e8c; font-weight: 500; }
 
-  /* BARRE OUTILS */
-  .barre-outils {
-    display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;
-  }
+  /* BARRÉS D'OUTILS */
+  .barre-outils { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
 
   .recherche {
     flex: 1; min-width: 200px;
@@ -392,7 +533,15 @@
 
   .btn-detail:hover { border-color: #e91e8c; color: #e91e8c; }
 
-  /* MODAL */
+  .btn-supprimer {
+    background: transparent; border: 1px solid #f8d7da;
+    color: #dc3545; border-radius: 8px; padding: 0.4rem 0.9rem;
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
+    cursor: pointer; transition: all 0.2s;
+  }
+
+  .btn-supprimer:hover { background: #fff0f3; }
+
   .modal-fond {
     position: fixed; inset: 0; background: rgba(0,0,0,0.4);
     display: flex; align-items: center; justify-content: center; z-index: 200; padding: 1rem;
@@ -401,6 +550,7 @@
   .modal {
     background: white; border-radius: 16px;
     width: 100%; max-width: 460px; box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    max-height: 90vh; overflow-y: auto;
   }
 
   .modal-entete {
@@ -425,6 +575,30 @@
 
   .modal-ligne span   { color: #718096; }
   .modal-ligne strong { color: #0d1b2a; }
+
+  /* DOCUMENTS */
+  .docs-section { margin-top: 1rem; }
+
+  .docs-titre {
+    font-size: 0.85rem; font-weight: 600; color: #4a5568;
+    margin-bottom: 0.6rem;
+  }
+
+  .docs-vide { font-size: 0.82rem; color: #a0aec0; font-style: italic; padding: 0.5rem 0; }
+
+  .doc-item {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.6rem 0.8rem; margin-bottom: 0.5rem;
+    background: #f8fafe; border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 8px; text-decoration: none; transition: all 0.2s;
+  }
+
+  .doc-item:hover { background: #fdf2f8; border-color: #e91e8c; }
+
+  .doc-icone { font-size: 1.1rem; }
+  .doc-nom { font-size: 0.85rem; color: #0d1b2a; font-weight: 500; flex: 1; }
+  .doc-type { font-size: 0.75rem; color: #718096; text-transform: uppercase; }
+  .doc-voir { font-size: 0.78rem; color: #e91e8c; font-weight: 500; }
 
   .msg-info {
     background: #e8f4fd; border: 1px solid #bee3f8; color: #2c5282;

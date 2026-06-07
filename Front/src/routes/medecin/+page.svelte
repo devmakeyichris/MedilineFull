@@ -1,4 +1,5 @@
 <script lang="ts">
+ import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
 
   type Medecin = {
@@ -14,6 +15,25 @@
     { id: 1, nom: "Dr. Martin", prenom: "Jean", specialite: "Cardiologue", photo: "/images/martin.jpg", adresse: "123 Rue de la Santé, Casablanca" },
     { id: 2, nom: "Dr. Amina", prenom: "Fatima", specialite: "Pédiatre", photo: "/images/amina.jpg", adresse: "Chahdia, Meknès" }
   ];
+   
+  onMount(async () => {
+  const response = await fetch("http://localhost:8086/docteurs/valider");
+  if (response.ok) {
+    const data = await response.json();
+    medecins = data.map((d: any) => ({
+      id: d.idDocteur,
+      nom: d.nomDocteur,
+      prenom: d.prenomDocteur,
+      specialite: d.specialiteDocteur,
+      photo: d.photoDocteur || "/images/default.jpg", // récupéré du backend
+      adresse: d.villeDocteur
+    }));
+  } else {
+    alert("Erreur lors du chargement des médecins validés.");
+  }
+});
+
+
 
   function prendreRendezVous(medecin: Medecin) {
     goto(`/rendez-Vous/${medecin.id}`);

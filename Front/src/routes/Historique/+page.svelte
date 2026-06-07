@@ -4,11 +4,24 @@
   let role = $state('');
   let onglet = $state('rdv'); // 'rdv' ou 'ordonnances'
 
-  onMount(() => {
-    localStorage.setItem('role', 'PATIENT'); // Simuler un rôle pour les tests
-    role = localStorage.getItem('role','PATIENT') || '';
-    if (!role) window.location.href = '/';
-  });
+  onMount(async () => {
+  if (role === 'PATIENT' && idUser) {
+    const rdvRes = await fetch(`http://localhost:8086/patients/${idUser}/rdvs`);
+    if (rdvRes.ok) rdvPatient = await rdvRes.json();
+
+    const ordoRes = await fetch(`http://localhost:8086/ordonnances/patient/${idUser}`);
+    if (ordoRes.ok) ordonnancesPatient = await ordoRes.json();
+  }
+
+  if (role === 'MEDECIN' && idUser) {
+    const rdvRes = await fetch(`http://localhost:8086/docteurs/${idUser}/rdvs`);
+    if (rdvRes.ok) rdvMedecin = await rdvRes.json();
+
+    const ordoRes = await fetch(`http://localhost:8086/ordonnances/docteur/${idUser}`);
+    if (ordoRes.ok) ordonnancesMedecin = await ordoRes.json();
+  }
+});
+
 
   // ── DONNÉES FICTIVES PATIENT ──
   let rdvPatient = $state([
@@ -29,6 +42,8 @@
     { id: 3, patient: 'Omar Bennis', date: '20/04/2026', heure: '09h00', statut: 'Annulé', ordonnance: false },
     { id: 4, patient: 'Fatima Zahra', date: '15/04/2026', heure: '14h30', statut: 'Terminé', ordonnance: true },
   ]);
+
+  
 </script>
 
 <svelte:head>
