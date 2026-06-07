@@ -33,14 +33,14 @@ public class PatientService {
         patient.setMotDePassePatient(passwordEncoder.encode(patient.getMotDePassePatient()));
         Patient saved = patientRepository.save(patient);
         
-         // Envoi email de bienvenue
-         emailService.envoyerEmail(
-         saved.getEmailPatient(),
-         "Inscription MediLine — Bienvenue",
-         "Bonjour " + saved.getNomPatient() + ",\n\n" +
-         "Votre compte patient a été créé avec succès.\n" +
-         "Vous pouvez dès maintenant vous connecter et prendre vos rendez-vous.\n\n" +
-         "L'équipe MediLine"
+        // Envoi email de bienvenue
+        emailService.envoyerEmail(
+        saved.getEmailPatient(),
+        "Inscription MediLine — Bienvenue",
+        "Bonjour " + saved.getNomPatient() + ",\n\n" +
+        "Votre compte patient a été créé avec succès.\n" +
+        "Vous pouvez dès maintenant vous connecter et prendre vos rendez-vous.\n\n" +
+        "L'équipe MediLine"
         );
         
         return saved;
@@ -101,6 +101,11 @@ public class PatientService {
     public Patient getPatientById(int patientId) {
         return patientRepository.findById(patientId)
         .orElseThrow(() -> new IllegalArgumentException("Le patient avec l'id " + patientId + " n'existe pas !"));
+    }
+    
+    public Patient findPatientByEmail(String email) {
+        return patientRepository.findByEmailPatient(email)
+        .orElseThrow(() -> new IllegalArgumentException("Patient introuvable"));
     }
     
     

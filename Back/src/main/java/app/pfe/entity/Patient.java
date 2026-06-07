@@ -26,6 +26,10 @@ public class Patient {
     @JsonIgnore
     private String motDePassePatient;
     
+    @JsonIgnore
+    @OneToMany(mappedBy = "patient")
+    private List<Ordonnance> ordonnances;
+    
     
     @Enumerated(EnumType.STRING)
     private SexeState sexePatient;
@@ -142,10 +146,15 @@ public class Patient {
     public void setMotDePassePatient(String motDePassePatient) {
         this.motDePassePatient = motDePassePatient;
     }
-
-
+    
+    
     public SexeState getSexePatient() {
         return sexePatient;
+    }
+
+
+    public List<Ordonnance> getOrdonnances() {
+        return ordonnances;
     }
     
     
