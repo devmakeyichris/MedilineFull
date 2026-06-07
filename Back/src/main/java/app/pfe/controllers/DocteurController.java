@@ -77,6 +77,28 @@ public class DocteurController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     
+    @GetMapping("/valider")
+    public ResponseEntity<List<DocteurResponse>> getDocteursValides() {
+        List<DocteurResponse> responses = docteurService.findDocteursValider()
+        .stream()
+        .map(docteur -> new DocteurResponse(
+        docteur.getIdDocteur(),
+        docteur.getNomDocteur(),
+        docteur.getPrenomDocteur(),
+        docteur.getEmailDocteur(),
+        docteur.getTelephoneDocteur(),
+        docteur.getAdresseDocteur(),
+        docteur.getVilleDocteur(),
+        docteur.getSpecialiteDocteur(),
+        docteur.getDescDocteur(),
+        docteur.getSexeDocteur(),
+        docteur.getValider()
+        ))
+        .toList();
+        
+        return ResponseEntity.ok(responses);
+    }
+    
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Boolean> deleteDocteurById(@PathVariable int id) {
         return ResponseEntity.ok(docteurService.deleteDocteurById(id));
@@ -120,5 +142,7 @@ public class DocteurController {
         
         return ResponseEntity.ok(responses);
     }
+    
+    
     
 }
