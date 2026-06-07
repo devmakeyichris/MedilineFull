@@ -1,10 +1,17 @@
 package app.pfe.service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 
 import app.pfe.entity.Docteur;
 import app.pfe.entity.Document;
@@ -144,6 +151,25 @@ public class DocteurService {
             .orElseThrow(() -> new IllegalArgumentException(
             "Le docteur avec l'id " + docteurId + " n'existe pas !"
             ));
+        }
+        
+        public String uploadPhotoProfil(int idDocteur, MultipartFile file) throws IOException {
+            Docteur docteur = getDocteurById(idDocteur);
+            
+            String uploadDir = "uploads/docteurs/";
+            Files.createDirectories(Paths.get(uploadDir));
+            
+            String fileName = "docteur_" + idDocteur + "_" + System.currentTimeMillis()
+            + "_" + file.getOriginalFilename();
+            
+            Path filePath = Paths.get(uploadDir + fileName);
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            
+            String photoUrl = "/uploads/docteurs/" + fileName;
+            docteur.setPhotoProfil(photoUrl);
+            docteurRepository.save(docteur);
+            
+            return photoUrl;
         }
         
         

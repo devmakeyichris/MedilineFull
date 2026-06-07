@@ -31,6 +31,8 @@ public class Docteur {
     @JsonIgnore
     private String motDePasseDocteur;
     
+    private String photoProfil;
+    
     private String telephoneDocteur; 
     private String adresseDocteur; 
     private String villeDocteur; 
@@ -41,7 +43,7 @@ public class Docteur {
     @Enumerated(EnumType.STRING)
     private SexeState sexeDocteur;
     
-
+    
     @JsonIgnore
     @OneToMany(mappedBy = "docteur")
     private List<Ordonnance> ordonnances;
@@ -81,6 +83,14 @@ public class Docteur {
         this.descDocteur = descDocteur;
         this.sexeDocteur = sexeDocteur;
         this.documents = documents;
+    }
+    
+    public String getPhotoProfil() {
+        return photoProfil;
+    }
+    
+    public void setPhotoProfil(String photoProfil) {
+        this.photoProfil = photoProfil;
     }
     public Integer getIdDocteur() {
         return idDocteur;

@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import app.pfe.dto.DocteurResponse;
 import app.pfe.dto.DocumentResponse;
@@ -71,7 +73,8 @@ public class DocteurController {
         saved.getSpecialiteDocteur(),
         saved.getDescDocteur(),
         saved.getSexeDocteur(),
-        saved.getValider()
+        saved.getValider(),
+        saved.getPhotoProfil()
         );
         
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -92,7 +95,8 @@ public class DocteurController {
         docteur.getSpecialiteDocteur(),
         docteur.getDescDocteur(),
         docteur.getSexeDocteur(),
-        docteur.getValider()
+        docteur.getValider(),
+        docteur.getPhotoProfil()
         ))
         .toList();
         
@@ -141,6 +145,18 @@ public class DocteurController {
         .toList();
         
         return ResponseEntity.ok(responses);
+    }
+
+    @PostMapping("/{id}/photo")
+    public ResponseEntity<?> uploadPhotoProfil(
+    @PathVariable int id,
+    @RequestParam("file") MultipartFile file) {
+        try {
+            String photoUrl = docteurService.uploadPhotoProfil(id, file);
+            return ResponseEntity.ok(photoUrl);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
     
     

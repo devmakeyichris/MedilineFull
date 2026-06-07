@@ -67,7 +67,8 @@ public class AdminController {
         docteur.getSpecialiteDocteur(),
         docteur.getDescDocteur(),
         docteur.getSexeDocteur(),
-        docteur.getValider()
+        docteur.getValider(),
+        docteur.getPhotoProfil()
         ))
         .toList();
         
