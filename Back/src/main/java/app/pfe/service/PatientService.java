@@ -3,8 +3,13 @@ package app.pfe.service;
 import java.util.List;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import app.pfe.entity.Patient;
 import app.pfe.repository.PatientRepository;
@@ -108,6 +113,7 @@ public class PatientService {
         .orElseThrow(() -> new IllegalArgumentException("Patient introuvable"));
     }
     
+  
     
     
 }
