@@ -15,10 +15,12 @@ public class PatientService {
     
     private final PatientRepository patientRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
     
-    public PatientService(PatientRepository patientRepository, PasswordEncoder passwordEncoder) {
+    public PatientService(PatientRepository patientRepository, PasswordEncoder passwordEncoder, EmailService emailService) {
         this.patientRepository = patientRepository;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
     }
     
     
@@ -29,8 +31,19 @@ public class PatientService {
             throw new IllegalArgumentException("Un patient avec cet email existe déjà");
         }
         patient.setMotDePassePatient(passwordEncoder.encode(patient.getMotDePassePatient()));
-        patientRepository.save(patient);
-        return patient;
+        Patient saved = patientRepository.save(patient);
+        
+         // Envoi email de bienvenue
+         emailService.envoyerEmail(
+         saved.getEmailPatient(),
+         "Inscription MediLine — Bienvenue",
+         "Bonjour " + saved.getNomPatient() + ",\n\n" +
+         "Votre compte patient a été créé avec succès.\n" +
+         "Vous pouvez dès maintenant vous connecter et prendre vos rendez-vous.\n\n" +
+         "L'équipe MediLine"
+        );
+        
+        return saved;
     }
     
     
@@ -40,6 +53,14 @@ public class PatientService {
         .orElseThrow(() -> new IllegalArgumentException("Patient introuvable"));
         
         BeanUtils.copyProperties(newInfoPatient, oldInfoPatient, "idPatient");
+        
+        if (newInfoPatient.getMotDePassePatient() != null 
+        && !newInfoPatient.getMotDePassePatient().isBlank()) {
+            
+            oldInfoPatient.setMotDePassePatient(
+            passwordEncoder.encode(newInfoPatient.getMotDePassePatient())
+            );
+        }
         
         return patientRepository.save(oldInfoPatient);
     }

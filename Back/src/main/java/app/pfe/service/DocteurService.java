@@ -19,13 +19,14 @@ public class DocteurService {
     private final  DocteurRepository docteurRepository;
     private final DocumentRepository documentRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
     
-    public DocteurService(DocteurRepository docteurRepository,DocumentRepository documentRepository, PasswordEncoder passwordEncoder) {
+    public DocteurService(DocteurRepository docteurRepository,DocumentRepository documentRepository, PasswordEncoder passwordEncoder, EmailService emailService) {
         this.docteurRepository = docteurRepository;
         this.documentRepository = documentRepository;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
     }
-    
     
     
     
@@ -36,7 +37,18 @@ public class DocteurService {
         }
         docteur.setMotDePasseDocteur(passwordEncoder.encode(docteur.getMotDePasseDocteur()));
         docteur.setValider(DocteurState.EN_ATTENTE); // par défaut
-        return docteurRepository.save(docteur);
+        Docteur saved = docteurRepository.save(docteur);
+        
+        emailService.envoyerEmail(
+        saved.getEmailDocteur(),
+        "Inscription MediLine — En attente de validation",
+        "Bonjour Dr. " + saved.getNomDocteur() + ",\n\n" +
+        "Votre compte médecin a été soumis avec succès.\n" +
+        "Notre équipe va vérifier vos documents et valider votre profil.\n" +
+        "Vous recevrez un email dès que votre compte sera activé.\n\n" +
+        "L'équipe MediLine"
+        );
+        return saved;
     }
     
     
@@ -53,7 +65,7 @@ public class DocteurService {
     
     
     public List<Docteur> findDocteursValider() {
-        return docteurRepository.findByValiderTrue();
+        return docteurRepository.findByValider(DocteurState.VALIDE);
     }
     
     
@@ -90,7 +102,7 @@ public class DocteurService {
         Docteur  oldDocteur = docteurRepository.findById(idDocteur)
         .orElseThrow(() -> new IllegalArgumentException("Ce docteur n'existe pas"));
         
-        BeanUtils.copyProperties(oldDocteur,newDocteur,"idDocteur");
+        BeanUtils.copyProperties(newDocteur, oldDocteur, "idDocteur");
         docteurRepository.save(oldDocteur);
         return oldDocteur;
         

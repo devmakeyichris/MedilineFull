@@ -15,19 +15,21 @@ import app.pfe.service.AuthentificationService;
 @RestController
 @RequestMapping("/auth")
 public class AuthentificationController {
-
+    
     private final AuthentificationService authService;
-
+    
     public AuthentificationController(AuthentificationService authService) {
         this.authService = authService;
     }
-
+    
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest request) {
-        System.out.println("comfirmation##########");
-        
-        String token = authService.login(request.email(), request.password());
-        return ResponseEntity.ok(token);
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        try {
+            String token = authService.login(request.email(), request.password());
+            return ResponseEntity.ok(token);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(401).body(e.getMessage());
+        }
     }
-
+    
 }

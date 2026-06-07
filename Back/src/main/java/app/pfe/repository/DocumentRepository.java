@@ -28,5 +28,7 @@ public interface DocumentRepository extends JpaRepository<Document, Integer> {
     boolean existsByNameDocument(String nomDocument);
 
     List<Document> findByDocteur_IdDocteur(int id);
+
+    boolean existsByNameDocumentAndDocteur_IdDocteur(String nameDocument, int idDocteur);
 }
 
