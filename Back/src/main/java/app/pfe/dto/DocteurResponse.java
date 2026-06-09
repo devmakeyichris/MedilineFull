@@ -16,6 +16,7 @@ public class DocteurResponse {
     private String descDocteur;
     private SexeState sexeDocteur;
     private DocteurState valider;
+    private String photoProfil;
 
     public DocteurResponse() {
     }
@@ -31,7 +32,8 @@ public class DocteurResponse {
             String specialiteDocteur,
             String descDocteur,
             SexeState sexeDocteur,
-            DocteurState valider) {
+            DocteurState valider,
+            String photoProfil) {
 
         this.idDocteur = idDocteur;
         this.nomDocteur = nomDocteur;
@@ -44,93 +46,42 @@ public class DocteurResponse {
         this.descDocteur = descDocteur;
         this.sexeDocteur = sexeDocteur;
         this.valider = valider;
+        this.photoProfil = photoProfil;
     }
 
-    public Integer getIdDocteur() {
-        return idDocteur;
-    }
+    public Integer getIdDocteur() { return idDocteur; }
+    public void setIdDocteur(Integer idDocteur) { this.idDocteur = idDocteur; }
 
-    public void setIdDocteur(Integer idDocteur) {
-        this.idDocteur = idDocteur;
-    }
+    public String getNomDocteur() { return nomDocteur; }
+    public void setNomDocteur(String nomDocteur) { this.nomDocteur = nomDocteur; }
 
-    public String getNomDocteur() {
-        return nomDocteur;
-    }
+    public String getPrenomDocteur() { return prenomDocteur; }
+    public void setPrenomDocteur(String prenomDocteur) { this.prenomDocteur = prenomDocteur; }
 
-    public void setNomDocteur(String nomDocteur) {
-        this.nomDocteur = nomDocteur;
-    }
+    public String getEmailDocteur() { return emailDocteur; }
+    public void setEmailDocteur(String emailDocteur) { this.emailDocteur = emailDocteur; }
 
-    public String getPrenomDocteur() {
-        return prenomDocteur;
-    }
+    public String getTelephoneDocteur() { return telephoneDocteur; }
+    public void setTelephoneDocteur(String telephoneDocteur) { this.telephoneDocteur = telephoneDocteur; }
 
-    public void setPrenomDocteur(String prenomDocteur) {
-        this.prenomDocteur = prenomDocteur;
-    }
+    public String getAdresseDocteur() { return adresseDocteur; }
+    public void setAdresseDocteur(String adresseDocteur) { this.adresseDocteur = adresseDocteur; }
 
-    public String getEmailDocteur() {
-        return emailDocteur;
-    }
+    public String getVilleDocteur() { return villeDocteur; }
+    public void setVilleDocteur(String villeDocteur) { this.villeDocteur = villeDocteur; }
 
-    public void setEmailDocteur(String emailDocteur) {
-        this.emailDocteur = emailDocteur;
-    }
+    public String getSpecialiteDocteur() { return specialiteDocteur; }
+    public void setSpecialiteDocteur(String specialiteDocteur) { this.specialiteDocteur = specialiteDocteur; }
 
-    public String getTelephoneDocteur() {
-        return telephoneDocteur;
-    }
+    public String getDescDocteur() { return descDocteur; }
+    public void setDescDocteur(String descDocteur) { this.descDocteur = descDocteur; }
 
-    public void setTelephoneDocteur(String telephoneDocteur) {
-        this.telephoneDocteur = telephoneDocteur;
-    }
+    public SexeState getSexeDocteur() { return sexeDocteur; }
+    public void setSexeDocteur(SexeState sexeDocteur) { this.sexeDocteur = sexeDocteur; }
 
-    public String getAdresseDocteur() {
-        return adresseDocteur;
-    }
+    public DocteurState getValider() { return valider; }
+    public void setValider(DocteurState valider) { this.valider = valider; }
 
-    public void setAdresseDocteur(String adresseDocteur) {
-        this.adresseDocteur = adresseDocteur;
-    }
-
-    public String getVilleDocteur() {
-        return villeDocteur;
-    }
-
-    public void setVilleDocteur(String villeDocteur) {
-        this.villeDocteur = villeDocteur;
-    }
-
-    public String getSpecialiteDocteur() {
-        return specialiteDocteur;
-    }
-
-    public void setSpecialiteDocteur(String specialiteDocteur) {
-        this.specialiteDocteur = specialiteDocteur;
-    }
-
-    public String getDescDocteur() {
-        return descDocteur;
-    }
-
-    public void setDescDocteur(String descDocteur) {
-        this.descDocteur = descDocteur;
-    }
-
-    public SexeState getSexeDocteur() {
-        return sexeDocteur;
-    }
-
-    public void setSexeDocteur(SexeState sexeDocteur) {
-        this.sexeDocteur = sexeDocteur;
-    }
-
-    public DocteurState getValider() {
-        return valider;
-    }
-
-    public void setValider(DocteurState valider) {
-        this.valider = valider;
-    }
+    public String getPhotoProfil() { return photoProfil; }
+    public void setPhotoProfil(String photoProfil) { this.photoProfil = photoProfil; }
 }

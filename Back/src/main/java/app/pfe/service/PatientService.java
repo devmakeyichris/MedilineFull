@@ -3,8 +3,13 @@ package app.pfe.service;
 import java.util.List;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import app.pfe.entity.Patient;
 import app.pfe.repository.PatientRepository;
@@ -33,14 +38,14 @@ public class PatientService {
         patient.setMotDePassePatient(passwordEncoder.encode(patient.getMotDePassePatient()));
         Patient saved = patientRepository.save(patient);
         
-         // Envoi email de bienvenue
-         emailService.envoyerEmail(
-         saved.getEmailPatient(),
-         "Inscription MediLine — Bienvenue",
-         "Bonjour " + saved.getNomPatient() + ",\n\n" +
-         "Votre compte patient a été créé avec succès.\n" +
-         "Vous pouvez dès maintenant vous connecter et prendre vos rendez-vous.\n\n" +
-         "L'équipe MediLine"
+        // Envoi email de bienvenue
+        emailService.envoyerEmail(
+        saved.getEmailPatient(),
+        "Inscription MediLine — Bienvenue",
+        "Bonjour " + saved.getNomPatient() + ",\n\n" +
+        "Votre compte patient a été créé avec succès.\n" +
+        "Vous pouvez dès maintenant vous connecter et prendre vos rendez-vous.\n\n" +
+        "L'équipe MediLine"
         );
         
         return saved;
@@ -103,6 +108,12 @@ public class PatientService {
         .orElseThrow(() -> new IllegalArgumentException("Le patient avec l'id " + patientId + " n'existe pas !"));
     }
     
+    public Patient findPatientByEmail(String email) {
+        return patientRepository.findByEmailPatient(email)
+        .orElseThrow(() -> new IllegalArgumentException("Patient introuvable"));
+    }
+    
+  
     
     
 }
