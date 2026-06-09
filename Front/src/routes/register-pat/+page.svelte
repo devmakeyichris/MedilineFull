@@ -119,8 +119,8 @@
           <label for="sexe">Sexe <span class="req">*</span></label>
           <select bind:value={sexe} class:error={erreur.sexe}>
             <option value="">-- Sélectionnez --</option>
-            <option value="M">Masculin</option>
-            <option value="F">Féminin</option>
+            <option value="HOMME">Masculin</option>
+            <option value="FEMME">Féminin</option>
           </select>
           {#if erreur.sexe}<span class="err-msg">{erreur.sexe}</span>{/if}
         </div>

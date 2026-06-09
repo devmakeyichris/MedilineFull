@@ -21,7 +21,7 @@
   onMount(async () => {
     // Récupérer l'id du docteur connecté depuis localStorage
     const id = localStorage.getItem('userId');
-    if (!id) { window.location.href = '/login'; return; }
+    if (!id) { window.location.href = '/login-page'; return; }
     idDocteur = parseInt(id);
 
     // Charger les créneaux
