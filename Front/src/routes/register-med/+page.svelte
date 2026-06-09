@@ -10,6 +10,7 @@
   let confirmerMotdepasse = $state('');
   let sexe = $state('');
   let erreur = $state<Record<string, string>>({});
+  let dateNaissance = $state('');
 
   const specialites = [
     "Médecin généraliste", "Cardiologue", "Dermatologue", "Endocrinologue",
@@ -29,6 +30,7 @@
     if (!specialite.trim()) erreur.specialite = "La spécialité est obligatoire.";
     if (!ville.trim()) erreur.ville = "La ville est obligatoire.";
     if (!adresse.trim()) erreur.adresse = "L'adresse est obligatoire.";
+    if (!dateNaissance) erreur.dateNaissance = "La date de naissance est obligatoire.";
     if (!sexe) erreur.sexe = "Le sexe est obligatoire.";
     if (!password) erreur.password = "Le mot de passe est obligatoire.";
     else if (password.length < 8) erreur.password = "Le mot de passe doit contenir au moins 8 caractères.";
@@ -41,13 +43,15 @@
     if (!valider()) return;
 
     try {
-      const response = await fetch("http://localhost:8086/docteur/add", {
+      const response = await fetch("http://localhost:8086/docteurs/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nom, prenom, email, telephone, adresse, ville, specialite, sexe, password })
+        body: JSON.stringify({ nom, prenom, email, telephone, adresse, ville, specialite, sexe, MotDePasse: password })
       });
 
       if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem("docteurId", data.idDocteur);
         window.location.href = "/register-med/documents";
       } else {
         erreur.general = "Erreur lors de l'inscription.";
@@ -132,11 +136,18 @@
         <label for="sexe">Sexe <span class="req">*</span></label>
         <select id="sexe" bind:value={sexe} class:error={erreur.sexe}>
           <option value="">-- Sélectionnez --</option>
-          <option value="M">Masculin</option>
-          <option value="F">Féminin</option>
+          <option value="HOMME">Masculin</option>
+          <option value="FEMME">Féminin</option>
         </select>
         {#if erreur.sexe}<span class="err-msg">{erreur.sexe}</span>{/if}
       </div>
+       <div class="field">
+        <label for="dateNaissance">Date de Naissance <span class="req">*</span></label>
+        <input id="dateNaissance" type="date" bind:value={dateNaissance}
+          class:error={erreur.dateNaissance} />
+        {#if erreur.dateNaissance}<span class="err-msg">{erreur.dateNaissance}</span>{/if}
+       </div>
+
 
       <div class="section">Coordonnées & sécurité</div>
 
@@ -156,8 +167,8 @@
 
       <div class="row2">
         <div class="field">
-          <label for="password">Mot de passe <span class="req">*</span></label>
-          <input id="password" type="password" bind:value={password}
+          <label for="motDePasse">Mot de passe <span class="req">*</span></label>
+          <input id="motDePasse" type="password" bind:value={password}
             placeholder="Min. 8 caractères" class:error={erreur.password} />
           {#if erreur.password}<span class="err-msg">{erreur.password}</span>{/if}
         </div>

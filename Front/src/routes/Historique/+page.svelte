@@ -1,49 +1,96 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
 
   let role = $state('');
-  let onglet = $state('rdv'); // 'rdv' ou 'ordonnances'
+  let idUser = $state('');
+  let onglet = $state('rdv');
+  let chargement = $state(true);
+
+  // VUE PATIENT
+  let rdvPatient = $state<any[]>([]);
+  let ordonnancesPatient = $state<any[]>([]);
+
+  // VUE DOCTEUR
+  let rdvMedecin = $state<any[]>([]);
+  let ordonnancesMedecin = $state<any[]>([]);
 
   onMount(async () => {
-  if (role === 'PATIENT' && idUser) {
-    const rdvRes = await fetch(`http://localhost:8086/patients/${idUser}/rdvs`);
-    if (rdvRes.ok) rdvPatient = await rdvRes.json();
+    role = localStorage.getItem('role') || '';
+    idUser = localStorage.getItem('userId') || '';
+    if (!role || !idUser) { window.location.href = '/login-page'; return; }
 
-    const ordoRes = await fetch(`http://localhost:8086/ordonnances/patient/${idUser}`);
-    if (ordoRes.ok) ordonnancesPatient = await ordoRes.json();
-  }
+    const token = localStorage.getItem('token');
 
-  if (role === 'MEDECIN' && idUser) {
-    const rdvRes = await fetch(`http://localhost:8086/docteurs/${idUser}/rdvs`);
-    if (rdvRes.ok) rdvMedecin = await rdvRes.json();
+    try {
+      if (role === 'PATIENT') {
+        // RDV du patient
+        const rdvRes = await fetch(`http://localhost:8086/patients/${idUser}/rdvs`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (rdvRes.ok) {
+          const data = await rdvRes.json();
+          rdvPatient = data.map((r: any) => ({
+            id: r.idRdv,
+            medecin: `Dr. ${r.docteur?.nomDocteur || ''} ${r.docteur?.prenomDocteur || ''}`,
+            specialite: r.docteur?.specialiteDocteur || '',
+            date: r.dateRdv ? r.dateRdv.split('T')[0] : '',
+            heure: r.heureRdv,
+            statut: r.statusRdv
+          }));
+        }
 
-    const ordoRes = await fetch(`http://localhost:8086/ordonnances/docteur/${idUser}`);
-    if (ordoRes.ok) ordonnancesMedecin = await ordoRes.json();
-  }
-});
+        // Ordonnances du patient
+        const ordoRes = await fetch(`http://localhost:8086/ordonnances/patient/${idUser}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (ordoRes.ok) {
+          const data = await ordoRes.json();
+          ordonnancesPatient = data.map((o: any) => ({
+            id: o.idOrdonnance,
+            medecin: o.nomMedecin,
+            specialite: o.specialite,
+            date: o.dateOrdonnance ? new Date(o.dateOrdonnance).toLocaleDateString('fr-FR') : '',
+            contenu: o.contenu
+          }));
+        }
+      }
 
+      if (role === 'DOCTEUR') {
+        // RDV du docteur
+        const rdvRes = await fetch(`http://localhost:8086/docteurs/${idUser}/rdvs`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (rdvRes.ok) {
+          const data = await rdvRes.json();
+          rdvMedecin = data.map((r: any) => ({
+            id: r.idRdv,
+            patient: `${r.patient?.nomPatient || ''} ${r.patient?.prenomPatient || ''}`,
+            date: r.dateRdv ? r.dateRdv.split('T')[0] : '',
+            heure: r.heureRdv,
+            statut: r.statusRdv
+          }));
+        }
 
-  // ── DONNÉES FICTIVES PATIENT ──
-  let rdvPatient = $state([
-    { id: 1, medecin: 'Dr. Benali', specialite: 'Cardiologue', date: '25/04/2026', heure: '10h30', statut: 'Terminé' },
-    { id: 2, medecin: 'Dr. Khalil', specialite: 'Généraliste', date: '20/04/2026', heure: '09h00', statut: 'Annulé' },
-    { id: 3, medecin: 'Dr. Saidi', specialite: 'Dermatologue', date: '10/04/2026', heure: '14h00', statut: 'Terminé' },
-  ]);
-
-  let ordonnancesPatient = $state([
-    { id: 1, medecin: 'Dr. Benali', specialite: 'Cardiologue', date: '25/04/2026', contenu: 'Paracétamol 1g — 3x/jour pendant 5 jours' },
-    { id: 2, medecin: 'Dr. Saidi', specialite: 'Dermatologue', date: '10/04/2026', contenu: 'Crème hydratante — 2x/jour' },
-  ]);
-
-  // ── DONNÉES FICTIVES MÉDECIN ──
-  let rdvMedecin = $state([
-    { id: 1, patient: 'Ahmed Ali', date: '25/04/2026', heure: '10h30', statut: 'Terminé', ordonnance: true },
-    { id: 2, patient: 'Sara Idrissi', date: '24/04/2026', heure: '11h00', statut: 'Terminé', ordonnance: false },
-    { id: 3, patient: 'Omar Bennis', date: '20/04/2026', heure: '09h00', statut: 'Annulé', ordonnance: false },
-    { id: 4, patient: 'Fatima Zahra', date: '15/04/2026', heure: '14h30', statut: 'Terminé', ordonnance: true },
-  ]);
-
-  
+        // Ordonnances du docteur
+        const ordoRes = await fetch(`http://localhost:8086/ordonnances/docteur/${idUser}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (ordoRes.ok) {
+          const data = await ordoRes.json();
+          ordonnancesMedecin = data.map((o: any) => ({
+            id: o.idOrdonnance,
+            patient: o.nomPatient,
+            date: o.dateOrdonnance ? new Date(o.dateOrdonnance).toLocaleDateString('fr-FR') : '',
+            contenu: o.contenu
+          }));
+        }
+      }
+    } catch (e) {
+      console.error('Erreur chargement historique:', e);
+    } finally {
+      chargement = false;
+    }
+  });
 </script>
 
 <svelte:head>
@@ -135,7 +182,7 @@
 
   </div>
 
-{:else if role === 'MEDECIN'}
+{:else if role === 'DOCTEUR'}
 
   <div class="page">
 
@@ -163,7 +210,7 @@
         <div class="stat-label">Terminées</div>
       </div>
       <div class="stat-carte">
-        <div class="stat-num">{rdvMedecin.filter(r => r.ordonnance).length}</div>
+        <div class="stat-num">{ordonnancesMedecin.length}</div>
         <div class="stat-label">Ordonnances émises</div>
       </div>
       <div class="stat-carte">
@@ -186,7 +233,6 @@
               <th>Date</th>
               <th>Heure</th>
               <th>Statut</th>
-              <th>Ordonnance</th>
             </tr>
           </thead>
           <tbody>
@@ -199,13 +245,6 @@
                   <span class="statut {rdv.statut === 'Terminé' ? 'statut-termine' : 'statut-annule'}">
                     {rdv.statut}
                   </span>
-                </td>
-                <td>
-                  {#if rdv.ordonnance}
-                    <a href="/ordonnance" class="btn-voir">Voir</a>
-                  {:else}
-                    <span class="aucune">—</span>
-                  {/if}
                 </td>
               </tr>
             {/each}
@@ -422,8 +461,6 @@
 
   tbody tr:hover { background: #fdf2f8; }
   tbody tr:last-child td { border-bottom: none; }
-
-  .aucune { color: #cbd5e0; }
 
   /* VIDE */
   .vide {

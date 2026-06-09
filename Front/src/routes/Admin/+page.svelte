@@ -140,9 +140,8 @@
   }
 
   onMount(async () => {
-    localStorage.setItem('role', 'ADMIN'); // ← temporaire pour tester
     role = localStorage.getItem('role') || '';
-    if (role !== 'ADMIN') { window.location.href = '/login'; return; }
+    if (role !== 'ADMIN') { window.location.href = '/login-page'; return; }
 
     const token = localStorage.getItem('token');
 

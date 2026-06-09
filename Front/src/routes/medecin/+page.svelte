@@ -11,10 +11,7 @@
     adresse: string;
   };
 
-  let medecins: Medecin[] = [
-    { id: 1, nom: "Dr. Martin", prenom: "Jean", specialite: "Cardiologue", photo: "/images/martin.jpg", adresse: "123 Rue de la Santé, Casablanca" },
-    { id: 2, nom: "Dr. Amina", prenom: "Fatima", specialite: "Pédiatre", photo: "/images/amina.jpg", adresse: "Chahdia, Meknès" }
-  ];
+  let medecins: Medecin[] = [];
    
   onMount(async () => {
   const response = await fetch("http://localhost:8086/docteurs/valider");
@@ -25,7 +22,7 @@
       nom: d.nomDocteur,
       prenom: d.prenomDocteur,
       specialite: d.specialiteDocteur,
-      photo: d.photoDocteur || "/images/default.jpg", // récupéré du backend
+      photo: d.photoProfil ? `http://localhost:8086${d.photoProfil}` : "/images/default.jpg", // récupéré du backend
       adresse: d.villeDocteur
     }));
   } else {

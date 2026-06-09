@@ -6,7 +6,7 @@
   let userId = $state('');
 
   // ── VARIABLES MÉDECIN ──
-  let patientChoisi = $state('');        // id du patient sélectionné
+  let patientChoisi = $state('');
   let nomPatient = $state('');
   let dateNaissance = $state('');
   let contenu = $state('');
@@ -25,11 +25,11 @@
   // ── VUE PATIENT ──
   let ordonnances = $state<any[]>([]);
   let ordoSelectionnee = $state<any>(null);
-  let ordoApercu = $state<any>(null);   // ordonnance à imprimer en PDF (patient)
+  let ordoApercu = $state<any>(null);
 
   onMount(async () => {
     role = localStorage.getItem('role') || '';
-    if (!role) { window.location.href = '/login'; return; }
+    if (!role) { window.location.href = '/login-page'; return; }
 
     userId = localStorage.getItem('userId') || '';
     const token = localStorage.getItem('token');
@@ -40,7 +40,7 @@
 
       // Charger la liste des patients pour le menu déroulant
       try {
-        const res = await fetch('http://localhost:8086/patients/all', {
+        const res = await fetch('http://localhost:8086/patients/getAll', {  // ← getAll
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -61,10 +61,10 @@
           const data = await res.json();
           ordonnances = data.map((o: any) => ({
             id: o.idOrdonnance,
-            nomMedecin: o.nomDocteur,
-            specialite: o.specialiteDocteur,
+            nomMedecin: o.nomMedecin,         // ← nomMedecin
+            specialite: o.specialite,         // ← specialite
             nomPatient: o.nomPatient,
-            dateNaissance: o.dNaissPatient,
+            dateNaissance: o.dateNaissance,   // ← dateNaissance
             date: o.dateOrdonnance ? new Date(o.dateOrdonnance).toLocaleDateString('fr-FR') : '',
             contenu: o.contenu
           }));
@@ -97,7 +97,7 @@
     valider();
     if (Object.keys(erreur).length > 0) return;
 
-    // 1. Enregistrer dans le backend
+    //  Enregistrer dans le backend
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:8086/ordonnances/add', {
