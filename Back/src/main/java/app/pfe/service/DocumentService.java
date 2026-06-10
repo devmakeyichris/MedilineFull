@@ -47,7 +47,7 @@ public class DocumentService {
     public Document updateDocument(String nomDocument, Document nouveauDocument) { 
         
         Document document = documentRepository.findByNameDocument(nomDocument) 
-        .orElseThrow(() -> new IllegalArgumentException("Document introuvable.")); 
+                .orElseThrow(() -> new IllegalArgumentException("Document introuvable.")); 
         
         BeanUtils.copyProperties(nouveauDocument, document, "idDocument");
         return documentRepository.save(document); 

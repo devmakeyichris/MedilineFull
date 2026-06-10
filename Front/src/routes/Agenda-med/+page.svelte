@@ -1,194 +1,345 @@
 <script lang="ts">
-    type Creneau = {
-        date: string;
-        heure: string;
-        disponible: boolean;
-    };
+  import { onMount } from 'svelte';
 
-    let calendrier: Creneau[] = [
-        {date: "2026-02-18" , heure: "11:00", disponible: true},
-        {date: "2026-02-18", heure: "14:10", disponible: true},
-    ];
+  type Creneau = {
+    id: number;
+    date: string;
+    heure: string;
+    heureFin: string;
+    disponible: boolean;
+  };
 
-    let newDate = "";
-    let newHour = "";
+  let calendrier = $state<Creneau[]>([]);
+  let newDate = $state('');
+  let newHour = $state('');
+  let newHourFin = $state('');
+  let erreur = $state('');
+  let succes = $state('');
+  let idDocteur = $state<number | null>(null);
+  let chargement = $state(true);
 
-    function ajouterCreneau(){
-        if(newDate && newHour){
-            calendrier.push({
-                date: newDate,
-                heure: newHour,
-                disponible: true
-            });
-           newDate = "";
-           newHour = ""; 
-        }
+  onMount(async () => {
+    // Récupérer l'id du docteur connecté depuis localStorage
+    const id = localStorage.getItem('userId');
+    if (!id) { window.location.href = '/login-page'; return; }
+    idDocteur = parseInt(id);
+
+    // Charger les créneaux
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8086/docteurs/${idDocteur}/creneaux`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        calendrier = data.map((c: any) => ({
+          id: c.idCreneau,
+          date: c.dateCreneau,
+          heure: c.heureDebut,
+          heureFin: c.heureFin,
+          disponible: !c.bloque
+        }));
+      }
+    } catch (e) {
+      erreur = "Impossible de charger les créneaux.";
+    } finally {
+      chargement = false;
     }
+  });
 
-    function bloquerCreneau(index: number){
+  async function ajouterCreneau() {
+    erreur = '';
+    if (!newDate) { erreur = 'La date est obligatoire.'; return; }
+    if (!newHour) { erreur = "L'heure de début est obligatoire."; return; }
+    if (!newHourFin) { erreur = "L'heure de fin est obligatoire."; return; }
+    if (newHourFin <= newHour) { erreur = "L'heure de fin doit être après l'heure de début."; return; }
+
+    // Vérifier si créneau existe déjà
+    const existe = calendrier.find(c => c.date === newDate && c.heure === newHour);
+    if (existe) { erreur = 'Ce créneau existe déjà.'; return; }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8086/docteurs/${idDocteur}/creneaux`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          dateCreneau: newDate,
+          heureDebut: newHour,
+          heureFin: newHourFin,
+          bloque: false
+        })
+      });
+
+      if (response.ok) {
+        const c = await response.json();
+        calendrier.push({
+          id: c.idCreneau,
+          date: c.dateCreneau,
+          heure: c.heureDebut,
+          heureFin: c.heureFin,
+          disponible: !c.bloque
+        });
+        newDate = '';
+        newHour = '';
+        newHourFin = '';
+        succes = 'Créneau ajouté avec succès !';
+        setTimeout(() => succes = '', 3000);
+      } else {
+        erreur = "Erreur lors de l'ajout du créneau.";
+      }
+    } catch (e) {
+      erreur = "Impossible de contacter le serveur.";
+    }
+  }
+
+  async function bloquerCreneau(index: number) {
+    try {
+      const token = localStorage.getItem('token');
+      const idCreneau = calendrier[index].id;
+      const response = await fetch(`http://localhost:8086/docteurs/${idDocteur}/creneaux/${idCreneau}/bloquer`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
         calendrier[index].disponible = false;
-    } 
-
-    function supprimerCreneau(index: number){
-        calendrier.splice(index, 1);
+      }
+    } catch (e) {
+      erreur = "Erreur lors du blocage.";
     }
+  }
+
+  async function supprimerCreneau(index: number) {
+    if (!confirm('Voulez-vous vraiment supprimer ce créneau ?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      const idCreneau = calendrier[index].id;
+      const response = await fetch(`http://localhost:8086/docteurs/${idDocteur}/creneaux/${idCreneau}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        calendrier.splice(index, 1);
+      }
+    } catch (e) {
+      erreur = "Erreur lors de la suppression.";
+    }
+  }
 </script>
 
-<div class="container">
-  <div class="card">
-    <div class="card-head">
-      <h1>Agenda du Médecin</h1>
+<svelte:head>
+  <title>Agenda — MediLine</title>
+</svelte:head>
+
+<div class="page">
+
+  <div class="entete">
+    <div class="entete-icone">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="4" width="18" height="18" rx="2" stroke="white" stroke-width="2"/>
+        <path d="M16 2v4M8 2v4M3 10h18" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Agenda du médecin</h1>
       <p>Ajoutez, bloquez ou supprimez vos créneaux de consultation</p>
     </div>
+  </div>
 
-    <form on:submit|preventDefault={ajouterCreneau}>                 
-        <label for="date">Date:</label>
-        <input type="date" bind:value={newDate} required/>
-        <label for="time">Heure:</label>
-        <input type="time" bind:value={newHour} required/>
-        <button type="submit" class="btn-submit">Ajouter</button>
-    </form>
+  <!-- MESSAGES -->
+  {#if succes}
+    <div class="msg-succes">✅ {succes}</div>
+  {/if}
+  {#if erreur}
+    <div class="msg-erreur-box">⚠️ {erreur}</div>
+  {/if}
 
-    <table>
+  <!-- FORMULAIRE AJOUT -->
+  <div class="carte">
+    <h2>Ajouter un créneau</h2>
+    <div class="form-ajout">
+      <div class="filtre-group">
+        <label for="date">Date</label>
+        <input type="date" bind:value={newDate} />
+      </div>
+      <div class="filtre-group">
+        <label for="heure-debut">Heure début</label>
+        <input type="time" bind:value={newHour} />
+      </div>
+      <div class="filtre-group">
+        <label for="heure-fin">Heure fin</label>
+        <input type="time" bind:value={newHourFin} />
+      </div>
+      <button class="btn-ajouter" onclick={ajouterCreneau}>
+        + Ajouter
+      </button>
+    </div>
+  </div>
+
+  <!-- TABLEAU CRÉNEAUX -->
+  <div class="carte-tableau">
+    {#if chargement}
+      <div class="vide">Chargement des créneaux...</div>
+    {:else if calendrier.length === 0}
+      <div class="vide">Aucun créneau — ajoutez-en un ci-dessus.</div>
+    {:else}
+      <table>
         <thead>
-            <tr>
-                <th>Date</th>
-                <th>Heure</th>
-                <th>Disponibilité</th>
-                <th>Actions</th>
-            </tr>
+          <tr class="titre">
+            <th>Date</th>
+            <th>Heure début</th>
+            <th>Heure fin</th>
+            <th>Disponibilité</th>
+            <th>Actions</th>
+          </tr>
         </thead>
         <tbody>
-            {#each calendrier as creneau, index}
+          {#each calendrier as creneau, index}
             <tr>
-                <td>{creneau.date}</td>
-                <td>{creneau.heure}</td>
-                <td>{creneau.disponible ? "Disponible" : "Bloqué"}</td>
-                <td>
-                    {#if creneau.disponible}
-                    <button type="button" class="btn-action" on:click={() => bloquerCreneau(index)}>Bloquer</button>
-                    {/if}
-                    <button type="button" class="btn-delete" on:click={() => supprimerCreneau(index)}>❌ Supprimer</button>
-                </td>
+              <td>{creneau.date}</td>
+              <td>{creneau.heure}</td>
+              <td>{creneau.heureFin}</td>
+              <td>
+                <span class="badge {creneau.disponible ? 'badge-dispo' : 'badge-occupe'}">
+                  {creneau.disponible ? 'Disponible' : 'Bloqué'}
+                </span>
+              </td>
+              <td class="actions-td">
+                {#if creneau.disponible}
+                  <button class="btn-bloquer" onclick={() => bloquerCreneau(index)}>
+                    🔒 Bloquer
+                  </button>
+                {/if}
+                <button class="btn-supprimer" onclick={() => supprimerCreneau(index)}>
+                  🗑 Supprimer
+                </button>
+              </td>
             </tr>
-            {/each}
+          {/each}
         </tbody>
-    </table>
+      </table>
+    {/if}
   </div>
+
 </div>
 
 <style>
-  .container {
-    display: flex;
-    justify-content: center;
-    padding: 95px 84px;
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap');
+
+  .page {
+    padding: 2rem 5%;
+    max-width: 1100px;
+    margin: 0 auto;
+    font-family: 'DM Sans', sans-serif;
   }
 
-  .card {
-    width: 100%;
-    max-width: 900px;
-    background: white;
-    border: 0.5px solid #f8bbd0;
-    border-radius: 16px;
-    overflow: hidden;
+  .entete { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+
+  .entete-icone {
+    width: 50px; height: 50px; border-radius: 14px;
+    background: linear-gradient(135deg, #e91e8c, #c21852);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
 
-  .card-head {
-    background: linear-gradient(135deg, #e91e8c 0%, #c2185b 100%);
-    padding: 20px 24px;
-    color: white;
-    border-radius: 16px 16px 0 0;
+  .entete h1 { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 700; color: #0d1b2a; margin: 0; }
+  .entete p  { font-size: 0.88rem; color: #718096; margin: 0; }
+
+  .msg-succes {
+    background: #d4edda; border: 1px solid #c3e6cb; color: #155724;
+    border-radius: 10px; padding: 0.9rem 1.2rem; margin-bottom: 1.5rem; font-size: 0.95rem;
   }
 
-  .card-head h1 {
-    font-size: 18px;
-    font-weight: 600;
+  .msg-erreur-box {
+    background: #fff0f3; border: 1px solid #f8d7da; color: #c21852;
+    border-radius: 10px; padding: 0.9rem 1.2rem; margin-bottom: 1.5rem; font-size: 0.95rem;
   }
 
-  .card-head p {
-    font-size: 12px;
-    color: rgba(255,255,255,0.8);
+  .carte {
+    background: white; border-radius: 16px; padding: 1.8rem;
+    border: 1px solid rgba(0,0,0,0.07); box-shadow: 0 2px 20px rgba(0,0,0,0.05);
+    margin-bottom: 1.5rem;
   }
 
-  form {
-    padding: 20px;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    flex-wrap: wrap;
+  .carte h2 {
+    font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
+    color: #0d1b2a; margin-bottom: 1.2rem;
+    padding-bottom: 0.7rem; border-bottom: 1.5px solid #f0f0f0;
   }
 
-  label {
-    font-size: 13px;
-    font-weight: 500;
-    color: #555;
+  .form-ajout { display: flex; align-items: flex-end; gap: 1rem; flex-wrap: wrap; }
+
+  .filtre-group { display: flex; flex-direction: column; gap: 0.3rem; }
+
+  .filtre-group label {
+    font-size: 0.8rem; font-weight: 600; color: #4a5568;
+    text-transform: uppercase; letter-spacing: 0.05em;
   }
 
-  input {
-    border: 1px solid #f8bbd0;
-    border-radius: 8px;
-    padding: 6px 10px;
-    font-size: 13px;
-    background: #fff9fb;
-    outline: none;
+  .filtre-group input {
+    border: 1.5px solid rgba(0,0,0,0.12); border-radius: 8px;
+    padding: 0.45rem 0.8rem; font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; color: #1a2332; background: white; outline: none;
+    transition: border-color 0.2s;
   }
 
-  input:focus {
-    border-color: #e91e8c;
-    background: white;
-    box-shadow: 0 0 0 3px rgba(233, 30, 140, 0.08);
+  .filtre-group input:focus { border-color: #e91e8c; }
+
+  .btn-ajouter {
+    padding: 0.5rem 1.4rem;
+    background: linear-gradient(135deg, #e91e8c, #c21852);
+    color: white; border: none; border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500;
+    cursor: pointer; transition: opacity 0.2s;
   }
 
-  .btn-submit, .btn-action {
-    background: linear-gradient(135deg, #e91e8c, #c2185b);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
+  .btn-ajouter:hover { opacity: 0.9; }
+
+  .carte-tableau {
+    background: white; border-radius: 16px;
+    border: 1px solid rgba(0,0,0,0.07);
+    box-shadow: 0 2px 20px rgba(0,0,0,0.05); overflow: hidden;
   }
 
-  .btn-submit:hover, .btn-action:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(194, 24, 91, 0.35);
+  table { width: 100%; border-collapse: collapse; }
+  :global(tr.titre) { background: #e91e8c !important; color: white; }
+
+  th, td { border-bottom: 1px solid #f0f0f0; padding: 0.85rem 1rem; text-align: center; font-size: 0.9rem; }
+  th { font-weight: 600; font-size: 0.85rem; }
+
+  tbody tr:hover { background: #fdf2f8; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .actions-td { display: flex; gap: 0.5rem; justify-content: center; align-items: center; }
+
+  .badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 100px; font-size: 0.8rem; font-weight: 500; }
+  .badge-dispo  { background: #d4edda; color: #155724; }
+  .badge-occupe { background: #f8d7da; color: #721c24; }
+
+  .btn-bloquer {
+    background: linear-gradient(135deg, #e91e8c, #c21852); color: white; border: none;
+    padding: 0.35rem 0.8rem; border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500;
+    cursor: pointer; transition: opacity 0.2s;
   }
 
-  .btn-delete {
-    background: none;
-    border: none;
-    color: #e53935;
-    cursor: pointer;
-    font-size: 13px;
-    margin-left: 6px;
+  .btn-bloquer:hover { opacity: 0.9; }
+
+  .btn-supprimer {
+    background: transparent; border: 1px solid #f8d7da; color: #dc3545;
+    border-radius: 8px; padding: 0.35rem 0.8rem;
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
+    cursor: pointer; transition: all 0.2s;
   }
 
-  .btn-delete:hover {
-    color: #b71c1c;
-  }
+  .btn-supprimer:hover { background: #fff0f3; }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 20px;
-    font-size: 13px;
-  }
+  .vide { padding: 3rem; text-align: center; color: #a0aec0; font-size: 0.95rem; }
 
-  th, td {
-    border: 1px solid #f8bbd0;
-    padding: 8px;
-    text-align: center;
-  }
-
-  th {
-    background: #fce4ec;
-    color: #c2185b;
-    font-weight: 600;
-  }
-
-  td {
-    background: #fff9fb;
+  @media (max-width: 768px) {
+    .form-ajout { flex-direction: column; align-items: flex-start; }
+    .actions-td { flex-direction: column; }
   }
 </style>

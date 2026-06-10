@@ -14,7 +14,7 @@
     date: string;
     heure: string;
     statusRdv: string;
-    motif: string; // ajout du champ motif côté docteur
+    motif: string;
   };
 
   let role = $state('');
@@ -22,9 +22,7 @@
   let chargement = $state(true);
   let erreurApi = $state('');
 
-  
-  // VUE PATIENT
- 
+  // ═══ VUE PATIENT ═══
   let creneaux = $state<Creneau[]>([]);
   let filtreDate = $state('');
   let filtreDisponible = $state('tous');
@@ -64,18 +62,15 @@
       const response = await fetch('http://localhost:8086/rdv/add', {
         method: 'POST',
         headers: {
-          'content-type': 'application/json',
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          rdv: {
-            dateRdv: `${creneauChoisi.date}T${creneauChoisi.heure}:00`,
-            heureRdv: creneauChoisi.heure,
-            motif: motif,  
-            statusRdv: 'Attente de confirmation'
-          },
-          idPatient: patientId,
-          idDocteur: medecinId
+          date: creneauChoisi.date,
+          heure: creneauChoisi.heure,
+          patientId: parseInt(patientId!),
+          docteurId: parseInt(medecinId),
+          status: 'Attente de confirmation'
         })
       });
 
@@ -93,9 +88,7 @@
     }
   }
 
- 
-  // VUE DOCTEUR
-
+  // ═══ VUE DOCTEUR ═══
   let rdvMedecin = $state<RdvMedecin[]>([]);
   let filtreDateMed = $state('');
   let filtreStatut = $state('tous');
@@ -119,13 +112,9 @@
   async function annulerRdv(rdv: RdvMedecin) {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8086/rdv/deleteRdv', {
+      const response = await fetch(`http://localhost:8086/rdv/cancel/${rdv.id}`, {
         method: 'PUT',
-        headers: {
-          'content-type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ idRdv: rdv.id })
+        headers: { 'Authorization': `Bearer ${token}` }
       });
 
       if (response.ok) {
@@ -139,32 +128,30 @@
     }
   }
 
-  // ══════════════════════════════════════
-  // CHARGEMENT DES DONNÉES
-  // ══════════════════════════════════════
+  // ═══ CHARGEMENT DES DONNÉES ═══
   onMount(async () => {
     role = localStorage.getItem('role') || '';
-    if (!role) { window.location.href = '/login'; return; }
+    if (!role) { window.location.href = '/login-page'; return; }
 
     medecinId = $page.params.id ?? '';
     const token = localStorage.getItem('token');
 
     try {
       if (role === 'PATIENT') {
-        const res = await fetch(`http://localhost:8086/docteur/${medecinId}/rdvs`, {
+        const res = await fetch(`http://localhost:8086/docteurs/${medecinId}/rdvs`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
           const data = await res.json();
           creneaux = data.map((r: any) => ({
-            date: r.dateRdv,
+            date: r.dateRdv ? r.dateRdv.split('T')[0] : '',
             heure: r.heureRdv,
             disponible: r.statusRdv !== 'CONFIRMÉ'
           }));
         }
       } else if (role === 'DOCTEUR') {
         const docteurId = localStorage.getItem('userId');
-        const res = await fetch(`http://localhost:8086/docteur/${docteurId}/rdvs`, {
+        const res = await fetch(`http://localhost:8086/docteurs/${docteurId}/rdvs`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -172,10 +159,10 @@
           rdvMedecin = data.map((r: any) => ({
             id: r.idRdv,
             patient: `${r.patient?.nomPatient || ''} ${r.patient?.prenomPatient || ''}`,
-            date: r.dateRdv,
+            date: r.dateRdv ? r.dateRdv.split('T')[0] : '',
             heure: r.heureRdv,
             statusRdv: r.statusRdv,
-            motif: r.motif //  affichage du motif côté docteur
+            motif: r.motif || ''
           }));
         }
       }

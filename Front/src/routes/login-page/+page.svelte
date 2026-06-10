@@ -41,11 +41,11 @@
       localStorage.setItem("token", token);
       localStorage.setItem("role", payload.role);
       localStorage.setItem("email", payload.sub);
-
+      localStorage.setItem("userId", payload.userId); 
       // Redirection selon le rôle
-      if (payload.role === "PATIENT")      window.location.href = "/rendez-V";
-      else if (payload.role === "DOCTEUR") window.location.href = "/rendez-V";
-      else if (payload.role === "ADMIN")   window.location.href = "/dashboard/admin";
+      if (payload.role === "PATIENT")      window.location.href = "/medecin";
+      else if (payload.role === "DOCTEUR") window.location.href = "/agenda-med";
+      else if (payload.role === "ADMIN")   window.location.href = "/Admin";
 
     } catch (e) {
       erreur.general = "Une erreur est survenue. Veuillez réessayer.";
