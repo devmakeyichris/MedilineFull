@@ -10,6 +10,8 @@
   let erreur = $state<Record<string, string>>({});
   let succes = $state(false);
   let sexe = $state('');
+  let dateNaissance = $state('');
+
 
   function valider() {
     erreur = {};
@@ -20,6 +22,7 @@
     if (!telephone.trim()) erreur.telephone = "Le téléphone est obligatoire.";
     else if (!/^[0-9+\s]{8,15}$/.test(telephone)) erreur.telephone = "Numéro invalide.";
     if (!ville.trim()) erreur.ville = "La ville est obligatoire.";
+    if (!dateNaissance) erreur.dateNaissance = "La date de naissance est obligatoire.";
     if (!password) erreur.password = "Le mot de passe est obligatoire.";
     else if (password.length < 8) erreur.password = "Le mot de passe doit contenir au moins 8 caractères.";
     if (confirmerMotdepasse !== password) erreur.confirmerMotdepasse = "Les mots de passe ne correspondent pas.";
@@ -34,7 +37,7 @@
       const response = await fetch("http://localhost:8086/patients/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nom, prenom, email, telephone, adresse, ville, sexe, password })
+        body: JSON.stringify({ nom, prenom, email, telephone, adresse, ville, sexe, dateNaissance, password })
       });
 
       if (response.ok) {
@@ -60,7 +63,7 @@
         <div class="check-icon">✓</div>
         <h2>Compte créé avec succès !</h2>
         <p>Bienvenue <strong>{prenom} {nom}</strong>. Un email de confirmation a été envoyé à <strong>{email}</strong>.</p>
-        <a href="/login" class="btn-submit">Se connecter</a>
+        <a href="/login-page" class="btn-submit">Se connecter</a>
       </div>
 
     {:else}
@@ -124,6 +127,12 @@
           </select>
           {#if erreur.sexe}<span class="err-msg">{erreur.sexe}</span>{/if}
         </div>
+        <div class="field">
+        <label for="dateNaissance">Date de Naissance <span class="req">*</span></label>
+        <input id="dateNaissance" type="date" bind:value={dateNaissance}
+          class:error={erreur.dateNaissance} />
+        {#if erreur.dateNaissance}<span class="err-msg">{erreur.dateNaissance}</span>{/if}
+       </div>
 
         <div class="section">Coordonnées & sécurité</div>
 

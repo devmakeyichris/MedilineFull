@@ -46,7 +46,7 @@
       const response = await fetch("http://localhost:8086/docteurs/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nom, prenom, email, telephone, adresse, ville, specialite, sexe, MotDePasse: password })
+        body: JSON.stringify({ nom, prenom, email, telephone, adresse, ville, specialite, sexe, dateNaissance, motDePasse: password })
       });
 
       if (response.ok) {
