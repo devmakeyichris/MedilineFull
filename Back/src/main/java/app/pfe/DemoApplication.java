@@ -6,6 +6,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import app.pfe.entity.Docteur;
 import app.pfe.entity.Patient;
@@ -15,6 +16,7 @@ import app.pfe.service.PatientService;
 import app.pfe.service.RdvService;
 
 @SpringBootApplication
+@EnableScheduling // Active la planification des tâches pour le rappel des RDV
 public class DemoApplication {
 
 	public static void main(String[] args) {
