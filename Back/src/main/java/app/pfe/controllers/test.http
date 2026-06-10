@@ -66,17 +66,139 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqZWFuLmR1cG9udEB0ZXRzMy5jb
 POST http://localhost:8086/patients/add
 Content-Type: application/json
 
+##################################
+POST http://localhost:8086/patients/add
+Content-Type: application/json
+
 {
-  "nomPatient": "Benali",
-  "prenomPatient": "Amina",
-  "emailPatient": "amina.benali@example.com",
-  "telPatient": "0612345678",
-  "adressePatient": "12 rue des Fleurs",
-  "villePatient": "Meknès",
-  "motDePassePatient": "password123"
+  "nom": "Patient",
+  "prenom": "Test",
+  "email": "patient@test.com",
+  "telephone": "0600000000",
+  "adresse": "Meknès",
+  "ville": "Meknès",
+  "dateNaissance": "2000-01-01",
+  "sexe": "HOMME",
+  "password": "123456"
+}
+
+##########################
+POST http://localhost:8086/docteurs/add
+Content-Type: application/json
+
+{
+  "nom": "Docteur2",
+  "prenom": "Test2",
+  "email": "devmakeyichris@gmail.com",
+  "motDePasse": "123456",
+  "telephone": "0611111111",
+  "adresse": "Centre ville",
+  "ville": "Meknès",
+  "specialite": "Cardiologue",
+  "description": "Médecin spécialiste",
+  "sexe": "HOMME"
+}
+
+##############
+GET http://localhost:8086/test-email
+
+##############
+POST http://localhost:8086/auth/login
+Content-Type: application/json
+
+{
+  "email": "patient@test.com",
+  "password": "123456"
+}
+
+##########################
+POST http://localhost:8086/auth/login
+Content-Type: application/json
+
+{
+  "email": "devmakeyichris@gmail.com",
+  "password": "123456"
+}
+
+################
+POST http://localhost:8086/admin/add
+Content-Type: application/json
+
+{
+  "email": "bmcnalia@gmail.com",
+  "motDePasse": "123456"
+}
+
+###########
+POST http://localhost:8086/auth/login
+Content-Type: application/json
+
+{
+  "email": "bmcnalia@gmail.com",
+  "password": "123456"
+}
+
+########
+PUT http://localhost:8086/admin/docteurs/3/valider
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJibWNuYWxpYUBnbWFpbC5jb20iLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODA2NzE5ODEsImV4cCI6MTc4MDY3NTU4MX0.LgWVJgsOj3U1vi2KQoDm4_-yL3mN4WgLjDLrWtDTHu0
+
+#######
+POST http://localhost:8086/documents/add
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZXZtYWtleWljaHJpc0BnbWFpbC5jb20iLCJyb2xlIjoiRE9DVEVVUiIsImlhdCI6MTc4MDY3MjIxNSwiZXhwIjoxNzgwNjc1ODE1fQ.SL4nx8A5C3eqMgkXTFbX4g5JlVuRP8arc88IXC6dYbM
+
+{
+  "name": "Diplome faculte2",
+  "type": "PDF",
+  "url": "https://exemple.com/diplome2.pdf",
+  "docteurId": 3
+}
+
+###3
+GET http://localhost:8086/docteurs/3/document
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZXZtYWtleWljaHJpc0BnbWFpbC5jb20iLCJyb2xlIjoiRE9DVEVVUiIsImlhdCI6MTc4MDY3MjIxNSwiZXhwIjoxNzgwNjc1ODE1fQ.SL4nx8A5C3eqMgkXTFbX4g5JlVuRP8arc88IXC6dYbM
+
+##################
+POST http://localhost:8086/rdv/add
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqZWFuLmR1cG9udEB0ZXRzMy5jb20iLCJyb2xlIjoiUEFUSUVOVCIsImlhdCI6MTc3NDM5MzI3MSwiZXhwIjoxNzc0Mzk2ODcxfQ.d6XeMEX6f-op9TRbRbdQLgE1rd8hsl17xABQv9n99jw
+
+{
+  "date": "2026-06-06T15:00:00",
+  "heure": "18:00",
+  "patientId": 1,
+  "docteurId": 3
 }
 
 
+####################
+PUT http://localhost:8086/rdv/confirm/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZXZtYWtleWljaHJpc0BnbWFpbC5jb20iLCJyb2xlIjoiRE9DVEVVUiIsImlhdCI6MTc4MDY3MjIxNSwiZXhwIjoxNzgwNjc1ODE1fQ.SL4nx8A5C3eqMgkXTFbX4g5JlVuRP8arc88IXC6dYbM
+#################
+POST http://localhost:8086/patients/add
+Content-Type: application/json
+
+{
+  "nom": "Dupont",
+  "prenom": "Jean",
+  "email": "jean.dupont@test.com",
+  "telephone": "0600000000",
+  "adresse": "Meknès",
+  "ville": "Meknès",
+  "dateNaissance": "2000-01-01",
+  "sexe": "HOMME",
+  "password": "123456"
+}
+##############
+PUT http://localhost:8086/rdv/confirm/1
+Authorization: Bearer TOKEN_DOCTEUR
+
+#############
+PUT http://localhost:8086/rdv/cancel/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZXZtYWtleWljaHJpc0BnbWFpbC5jb20iLCJyb2xlIjoiRE9DVEVVUiIsImlhdCI6MTc4MDY3MjIxNSwiZXhwIjoxNzgwNjc1ODE1fQ.SL4nx8A5C3eqMgkXTFbX4g5JlVuRP8arc88IXC6dYbM
+
+################################
+GET http://localhost:8086/admin/docteurs
 
 
 
