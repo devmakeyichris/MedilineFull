@@ -43,12 +43,15 @@
       if (response.ok) {
         succes = true;
       } else {
-        erreur.general = "Erreur lors de l'inscription.";
+        // Récupérer le message d'erreur du backend
+      const messageErreur = await response.text();
+      erreur.general = messageErreur || "Erreur lors de l'inscription ou Email déjà utilisé.";
       }
     } catch (e) {
       erreur.general = "Impossible de contacter le serveur.";
     }
   }
+ 
 </script>
 
 <svelte:head>

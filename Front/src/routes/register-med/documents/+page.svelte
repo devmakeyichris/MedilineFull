@@ -79,7 +79,7 @@
       identite.forEach(file => formData.append("identite", file));
       diplomes.forEach(file => formData.append("diplomes", file));
       autresDocs.forEach(file => formData.append("autresDocs", file));
-      formData.append("docteurid", docteurId);
+      formData.append("idDocteur", docteurId);
 
 
       const response = await fetch("http://localhost:8086/documents/upload", {
