@@ -44,7 +44,7 @@
       localStorage.setItem("userId", payload.userId); 
       // Redirection selon le rôle
       if (payload.role === "PATIENT")      window.location.href = "/medecin";
-      else if (payload.role === "DOCTEUR") window.location.href = "/agenda-med";
+      else if (payload.role === "DOCTEUR") window.location.href = "/Agenda-med";
       else if (payload.role === "ADMIN")   window.location.href = "/Admin";
 
     } catch (e) {
