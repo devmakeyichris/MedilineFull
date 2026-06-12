@@ -18,34 +18,34 @@
   let idDocteur = $state<number | null>(null);
   let chargement = $state(true);
 
-  onMount(async () => {
-    // Récupérer l'id du docteur connecté depuis localStorage
-    const id = localStorage.getItem('userId');
-    if (!id) { window.location.href = '/login-page'; return; }
-    idDocteur = parseInt(id);
+ onMount(async () => {
+  // Récupérer l'id du docteur depuis docteurId (après inscription) OU userId (après connexion)
+  const id = localStorage.getItem('docteurId') || localStorage.getItem('userId');
+  if (!id) { window.location.href = '/login-page'; return; }
+  idDocteur = parseInt(id);
 
-    // Charger les créneaux
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8086/docteurs/${idDocteur}/creneaux`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        calendrier = data.map((c: any) => ({
-          id: c.idCreneau,
-          date: c.dateCreneau,
-          heure: c.heureDebut,
-          heureFin: c.heureFin,
-          disponible: !c.bloque
-        }));
-      }
-    } catch (e) {
-      erreur = "Impossible de charger les créneaux.";
-    } finally {
-      chargement = false;
+  // Charger les créneaux
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`http://localhost:8086/docteurs/${idDocteur}/creneaux`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      calendrier = data.map((c: any) => ({
+        id: c.idCreneau,
+        date: c.dateCreneau,
+        heure: c.heureDebut,
+        heureFin: c.heureFin,
+        disponible: !c.bloque
+      }));
     }
-  });
+  } catch (e) {
+    erreur = "Impossible de charger les créneaux.";
+  } finally {
+    chargement = false;
+  }
+});
 
   async function ajouterCreneau() {
     erreur = '';
